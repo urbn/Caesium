@@ -1,4 +1,4 @@
-__author__ = 'hunter'
+__author__ = 'hunt3r'
 
 from pymongo import GEO2D
 from mongokit import Document

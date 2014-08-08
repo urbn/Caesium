@@ -1,3 +1,5 @@
+__author__ = 'hunt3r'
+
 import logging
 from pymongo.errors import *
 from bson import json_util
@@ -390,12 +392,4 @@ class BaseBulkScheduleableUpdateHandler(BaseHandler):
         result = yield self.revisions.collection.remove({ "meta.bulk_id": bulk_id })
 
         self.write(result)
-
-
-
-
-class RevisionProcessorHandler(WebSocketHandler):
-
-    def initialize(self):
-        pass
 
