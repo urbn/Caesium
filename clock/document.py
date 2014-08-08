@@ -1,19 +1,16 @@
 __author__ = 'hunt3r'
 
 from pymongo import GEO2D
-from mongokit import Document
 from bson import json_util
 import json
 from bson.objectid import ObjectId
 from bson.timestamp import Timestamp
 import json.encoder
 import datetime, time
-from settings import settings
 import jsonschema
 from json import JSONEncoder
 import logging
 from tornado.gen import Return, coroutine
-from apps.admin.socket_handler import revision_success
 import copy
 
 """
@@ -25,20 +22,21 @@ class AsyncRevisionStackManager(object):
 
     """Find revisions for any document type and action the revision"""
 
-    def __init__(self):
+    def __init__(self, settings):
         """
         Constructor
         :attr dictionary collection: The collection you want revision documents on
         :attr string master_id: The id of the master within the collection
         """
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.settings = settings
         self.client = settings.get("db")
         assert self.client != None
 
     @coroutine
     def publish(self):
         try:
-            for collection in settings.get("scheduler").get("collections"):
+            for collection in self.settings.get("scheduler").get("collections"):
                 yield self.publish_for_collection(collection)
         except Exception, ex:
             self.logger.error(ex)
@@ -245,7 +243,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
             revision = yield self.revisions.find_one_by_id(revision.get("id"))
 
             #Notify any clients via websocket
-            revision_success.send('revision_success', type="RevisionSuccess", data=revision)
+            #revision_success.send('revision_success', type="RevisionSuccess", data=revision)
 
             raise Return(revision)
 
@@ -684,37 +682,6 @@ class BSONEncoder(JSONEncoder):
 
         return JSONEncoder.default(self, obj)
 
-
-class BaseDocument(Document):
-    """Base document that all mongokit documents should inherit from"""
-
-    structure = {}
-    use_schemaless = True
-    use_autorefs = True
-
-    def list_cursor_to_json(self, cursor):
-        """Convenience method for converting a mongokit or pymongo list cursor into a JSON object for return"""
-        return [self.obj_cursor_to_json(obj) for obj in cursor]
-
-    def obj_cursor_to_json(self, cursor):
-        """Handle conversion of pymongo cursor into a JSON object formatted for UI consumption"""
-        jsonObject = json.loads(json_util.dumps(cursor))
-
-        if "_id" in jsonObject:
-            jsonObject['id'] = str(jsonObject['_id']['$oid'])
-            del jsonObject['_id']
-
-        return jsonObject
-
-    def json_obj_to_document(self, json):
-        """Take a json post body and transform back to a document"""
-
-        cursor = self.from_json(json)
-        if "id" in cursor:
-            cursor["_id"] = ObjectId(cursor["id"])
-            del cursor["id"]
-
-        return cursor
 
 class RevisionNotFoundException(Exception):
     pass

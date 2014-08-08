@@ -1,20 +1,21 @@
 __author__ = 'hunter'
 
 from nose.tools import *
-from apps.base.document import BaseAsyncMotorDocument
-from apps.stores.parsers import *
+from clock.document import BaseAsyncMotorDocument
 import tornado
 import tornado.testing
 import tornado.gen
-from tests.base.base_tests import BaseAsyncTest
+from base_tests import BaseAsyncTest
 test_attr = unicode("foo")
 test_val = unicode("bar")
-from apps.base.document import AsyncRevisionStackManager, AsyncSchedulableDocumentRevisionStack, RevisionActionNotValid
+
+from clock.document import AsyncRevisionStackManager, AsyncSchedulableDocumentRevisionStack, RevisionActionNotValid
 import time
 from bson import ObjectId
 from tornado.testing import gen_test
 from nose.tools import raises
 import datetime
+
 class TestBaseAsyncMotorDocument(BaseAsyncTest):
     """ Test the Mongo Client funcitons here"""
 
