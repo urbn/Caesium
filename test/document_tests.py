@@ -11,7 +11,7 @@ from nose.tools import raises, ok_
 import datetime
 
 from base_tests import BaseAsyncTest
-from clock.document import AsyncRevisionStackManager, AsyncSchedulableDocumentRevisionStack, RevisionActionNotValid, BaseAsyncMotorDocument
+from caesium.document import AsyncRevisionStackManager, AsyncSchedulableDocumentRevisionStack, RevisionActionNotValid, BaseAsyncMotorDocument
 
 test_attr = unicode("foo")
 test_val = unicode("bar")
@@ -30,8 +30,6 @@ settings['mongo']['port'] = 27017
 settings['mongo']['db'] = "test"
 
 settings['db'] = motor.MotorClient("mongodb://%s:%s" % (settings['mongo']['host'], settings['mongo']['port']))[settings['mongo']['db']]
-
-
 
 
 class TestBaseAsyncMotorDocument(BaseAsyncTest):
