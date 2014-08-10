@@ -1,20 +1,38 @@
 __author__ = 'hunter'
 
-from nose.tools import *
-from clock.document import BaseAsyncMotorDocument
+import motor
 import tornado
 import tornado.testing
 import tornado.gen
-from base_tests import BaseAsyncTest
-test_attr = unicode("foo")
-test_val = unicode("bar")
-
-from clock.document import AsyncRevisionStackManager, AsyncSchedulableDocumentRevisionStack, RevisionActionNotValid
 import time
 from bson import ObjectId
 from tornado.testing import gen_test
-from nose.tools import raises
+from nose.tools import raises, ok_
 import datetime
+
+from base_tests import BaseAsyncTest
+from clock.document import AsyncRevisionStackManager, AsyncSchedulableDocumentRevisionStack, RevisionActionNotValid, BaseAsyncMotorDocument
+
+test_attr = unicode("foo")
+test_val = unicode("bar")
+
+settings = {}
+
+settings['scheduler']= {
+    "timeout_in_milliseconds": 10000,
+    "lazy_migrated_published_by_default": True,
+    "collections" : ["test_fixtures"]
+}
+
+settings['mongo'] = {}
+settings['mongo']['host'] = "localhost"
+settings['mongo']['port'] = 27017
+settings['mongo']['db'] = "test"
+
+settings['db'] = motor.MotorClient("mongodb://%s:%s" % (settings['mongo']['host'], settings['mongo']['port']))[settings['mongo']['db']]
+
+
+
 
 class TestBaseAsyncMotorDocument(BaseAsyncTest):
     """ Test the Mongo Client funcitons here"""
@@ -35,7 +53,7 @@ class TestBaseAsyncMotorDocument(BaseAsyncTest):
             "sub_document" : self.mini_doc
         }
 
-        self.client = BaseAsyncMotorDocument("test_collection")
+        self.client = BaseAsyncMotorDocument("test_collection", settings=settings)
 
         BaseAsyncTest.setUp(self)
 
@@ -138,8 +156,8 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
 
     def setUp(self):
         super(self.__class__, self).setUp()
-        self.collection = BaseAsyncMotorDocument("test_fixture")
-        self.stack = AsyncSchedulableDocumentRevisionStack("test_fixture")
+        self.collection = BaseAsyncMotorDocument("test_fixture", settings)
+        self.stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings)
         self.setup_database()
 
     @tornado.gen.coroutine
@@ -163,7 +181,7 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
         patch = {
             "patch.baz" : True
         }
-        self.stack = AsyncSchedulableDocumentRevisionStack("test_fixture", master_id=master_id)
+        self.stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings, master_id=master_id)
         yield self.stack.push(patch, self.three_min_past_now)
         yield self.stack.pop()
         obj = yield self.collection.find_one_by_id(master_id)
@@ -176,7 +194,7 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
     def test_list_of_revisions(self):
         """Test that we can create a list of revisions from a given document in a collection"""
         master_id = yield self.collection.insert(self.test_fixture)
-        self.stack = AsyncSchedulableDocumentRevisionStack("test_fixture", master_id=master_id)
+        self.stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings, master_id=master_id)
         id1 = yield self.stack.push(self.test_fixture, self.three_min_past_now)
         id2 = yield self.stack.push(self.test_fixture, self.three_min_ahead_of_now)
 
@@ -188,7 +206,7 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
     def test_peek_on_stack(self):
         """Test that we get a single object off the top of the stack"""
         master_id = yield self.collection.insert(self.test_fixture)
-        self.stack = AsyncSchedulableDocumentRevisionStack("test_fixture", master_id=master_id)
+        self.stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings, master_id=master_id)
         id1 = yield self.stack.push(self.test_fixture, time.mktime(datetime.datetime.strptime('24052010', "%d%m%Y").timetuple()))
         id2 = yield self.stack.push(self.test_fixture, time.mktime(datetime.datetime.now().timetuple()))
         peeked_obj = yield self.stack.peek()
@@ -202,7 +220,7 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
     def test_pop_off_stack(self):
         """Test that our stack.pop method updates all relevant data correctly"""
         master_id = yield self.collection.insert(self.mini_doc)
-        self.stack = AsyncSchedulableDocumentRevisionStack("test_fixture", master_id=master_id)
+        self.stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings,master_id=master_id)
         self.mini_doc[test_attr] = test_val
         id1 = yield self.stack.push(self.mini_doc, self.three_min_past_now)
         id2 = yield self.stack.push(self.mini_doc, self.now)
@@ -218,8 +236,8 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
     def test_publish_scheduled_pop_off_stack_w_manager(self):
         """Test that we can schedule a revision for 3 min ago and that the revision is applied through the manager"""
         master_id = yield self.collection.insert(self.mini_doc)
-        manager = AsyncRevisionStackManager()
-        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", master_id=master_id)
+        manager = AsyncRevisionStackManager(settings)
+        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings, master_id=master_id)
 
         self.mini_doc[test_attr] = test_val
         yield stack.push(self.mini_doc, self.three_min_past_now)
@@ -234,7 +252,7 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
     @gen_test
     def test_publish_with_insert_action(self):
         """Test that we can schedule a new collection object"""
-        stack = AsyncSchedulableDocumentRevisionStack("test_fixture")
+        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings)
         meta = {
             "comment" : "foo"
         }
@@ -255,8 +273,8 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
     def test_publish_with_delete_action(self):
         """Test that we can delete a document on a schedule"""
         master_id = yield self.collection.insert(self.mini_doc)
-        manager = AsyncRevisionStackManager()
-        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", master_id=master_id)
+        manager = AsyncRevisionStackManager(settings)
+        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings, master_id=master_id)
         meta = {
             "comment" : "foo"
         }
@@ -274,8 +292,8 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
     def test_stack_push_can_be_invalid_based_on_object_type(self):
         """Test that if we push the wrong type into a patch attribute, we fail correctly"""
         master_id = yield self.collection.insert(self.mini_doc)
-        manager = AsyncRevisionStackManager()
-        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", master_id=master_id)
+        manager = AsyncRevisionStackManager(settings)
+        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings, master_id=master_id)
 
         yield stack.push("foo", ttl=self.three_min_past_now)
         yield stack.push(False, ttl=self.three_min_past_now)
@@ -285,7 +303,7 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
         """Test that the stack can create a future state of a document"""
         master_id = yield self.collection.insert(self.test_fixture)
 
-        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", master_id=master_id)
+        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings, master_id=master_id)
 
         update = {
             test_attr: test_val
@@ -311,7 +329,7 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
     def test_stack_can_produce_snapshot_of_future_revision_of_insert_type(self):
         """Test that the stack can create a future state of a new yet to be created document"""
 
-        stack = AsyncSchedulableDocumentRevisionStack("test_fixture")
+        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings)
 
         fixture = self.test_fixture
 
@@ -337,14 +355,14 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
     @gen_test(timeout=50)
     def test_stack_can_migrate_a_legacy_object_automatically(self):
         """Test the stack can migrate a legacy object automatically for the user"""
-        client = BaseAsyncMotorDocument("test_fixture")
-        revisions = BaseAsyncMotorDocument("test_fixture_revisions")
+        client = BaseAsyncMotorDocument("test_fixture", settings)
+        revisions = BaseAsyncMotorDocument("test_fixture_revisions", settings)
 
         fixture = self.test_fixture
 
         master_id = yield client.insert(fixture)
 
-        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", master_id=master_id)
+        stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings, master_id=master_id)
 
         fixture["baz"] = "bop"
         yield stack.push(self.test_fixture, self.three_min_past_now, meta={"author": "UnitTest", "comment": "Just a test, BRO."})

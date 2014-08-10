@@ -4,11 +4,10 @@ import logging
 from pymongo.errors import *
 from bson import json_util
 from jsonschema import ValidationError
-from apps.base.handler import BaseHandler
-from apps.base.document import AsyncSchedulableDocumentRevisionStack, BaseAsyncMotorDocument
+from handler import BaseHandler
+from document import AsyncSchedulableDocumentRevisionStack, BaseAsyncMotorDocument
 from tornado.gen import coroutine
 from tornado.web import authenticated
-from tornado.websocket import WebSocketHandler
 from tornado.gen import Return
 import uuid
 
