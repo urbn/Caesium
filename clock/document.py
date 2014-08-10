@@ -136,7 +136,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
     INSERT_ACTION = "insert"
 
 
-    def __init__(self, collection_name, collection_schema=None, master_id=None):
+    def __init__(self, collection_name, settings, collection_schema=None, master_id=None):
         """
         Constructor
         :attr dictionary collection: The collection you want revision documents on
@@ -144,13 +144,14 @@ class AsyncSchedulableDocumentRevisionStack(object):
         """
         self.master_id=master_id
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.client = settings.get("db")
+        self.settings = settings
+        self.client = self.settings.get("db")
         assert self.client != None
         self.revisions = []
         self.collection_name = collection_name
-        self.collection = BaseAsyncMotorDocument(collection_name, schema=collection_schema)
-        self.revisions = BaseAsyncMotorDocument("%s_revisions" % collection_name, schema=self.SCHEMA)
-        self.previews = BaseAsyncMotorDocument("previews")
+        self.collection = BaseAsyncMotorDocument(collection_name, self.settings, schema=collection_schema)
+        self.revisions = BaseAsyncMotorDocument("%s_revisions" % collection_name, self.settings, schema=self.SCHEMA)
+        self.previews = BaseAsyncMotorDocument("previews", self.settings)
 
     @coroutine
     def search(self, id=None, number=None):
@@ -370,7 +371,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
         #Here we separate patch and snapshot, and make sure that the snapshot looks like the master document
         snapshot = copy.deepcopy(patch)
         snapshot["id"] = self.master_id
-        snapshot["published"] = settings.get("scheduler", {}).get("lazy_migrated_published_by_default", False)
+        snapshot["published"] = self.settings.get("scheduler", {}).get("lazy_migrated_published_by_default", False)
 
         #If no objects are returned, this is some legacy object that needs a first revision
         #Create it here
@@ -416,7 +417,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
         if not isinstance(target_revision, dict):
             raise RevisionNotFound()
 
-        revision_collection_client = BaseAsyncMotorDocument(target_revision.get("collection"))
+        revision_collection_client = BaseAsyncMotorDocument(target_revision.get("collection"), self.settings)
 
         self.master_id = target_revision.get("master_id")
 
@@ -481,13 +482,16 @@ class AsyncSchedulableDocumentRevisionStack(object):
 class BaseAsyncMotorDocument(object):
     """Concrete abstract class for a mongo collection and document interface"""
 
-    def __init__(self, collection_name, schema=None, scheduleable=False):
+    def __init__(self, collection_name, settings, schema=None, scheduleable=False):
+
         """
         Constructor
         :attr dictionary collection: The collection you wantto
         """
         self.logger = logging.getLogger(self.__class__.__name__)
-        self.client = settings.get("db")
+        self.settings = settings
+        self.client = self.settings.get("db")
+
         assert self.client != None
         self.scheduleable = scheduleable
         self.collection_name = collection_name
