@@ -8,6 +8,10 @@ Caesium is a document scheduling tool built on top of MongoDB, Tornado, and Moto
 - Abstracts the use of Cursor objects to document ORM
 - Uses coroutines by default and won't block unless you call yield in your handlers
 
+##Compatibility
+
+Currently it works on python 2.7 only, but 3.3 will be supported soon.
+
 ##Build Status
 
 ![Travis Build](https://travis-ci.org/urbn/Caesium.svg?branch=master)
