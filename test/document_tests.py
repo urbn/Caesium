@@ -114,7 +114,7 @@ class TestBaseAsyncMotorDocument(BaseAsyncTest):
 
     @tornado.testing.gen_test
     def test_07_patch_object(self):
-        """Test that we can DELETE an object"""
+        """Test that we can patch an object"""
         resp = yield self.client.insert(self.test_fixture)
         patch_obj = {
             test_attr: test_val
