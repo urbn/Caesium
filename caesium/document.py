@@ -1,7 +1,6 @@
 __author__ = 'hunt3r'
 
 from pymongo import GEO2D
-from bson import json_util
 import json
 from bson.objectid import ObjectId
 from bson.timestamp import Timestamp

@@ -1,3 +1,5 @@
+__author__ = 'hunt3r'
+
 """
 A base handlers module
 """
@@ -8,7 +10,6 @@ import logging
 from pymongo.errors import InvalidDocument, InvalidOperation
 from bson import json_util
 from jsonschema import ValidationError
-from handler import BaseHandler
 from document import AsyncSchedulableDocumentRevisionStack, BaseAsyncMotorDocument
 from tornado.gen import coroutine
 from tornado.web import authenticated
