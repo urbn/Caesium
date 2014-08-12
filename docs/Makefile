@@ -6,6 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
+GH_PAGES_SOURCES = source caesium Makefile
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -45,6 +46,17 @@ help:
 	@echo "  pseudoxml  to make pseudoxml-XML files for display purposes"
 	@echo "  linkcheck  to check all external links for integrity"
 	@echo "  doctest    to run all doctests embedded in the documentation (if enabled)"
+
+gh-pages:
+    git checkout gh-pages
+    rm -rf build _sources _static
+    git checkout master $(GH_PAGES_SOURCES)
+    git reset HEAD
+    make html
+    mv -fv build/html/* ./
+    rm -rf $(GH_PAGES_SOURCES) build
+    git add -A
+    git ci -m "Generated gh-pages for `git log master -1 --pretty=short --abbrev-commit`" && git push origin gh-pages ; git checkout master
 
 clean:
 	rm -rf $(BUILDDIR)/*
