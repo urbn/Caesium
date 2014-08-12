@@ -35,7 +35,7 @@ class AsyncRevisionStackManager(object):
     @coroutine
     def publish(self):
         try:
-            for collection in self.settings.get("scheduler").get("collections"):
+             for collection in self.settings.get("scheduler").get("collections"):
                 yield self.publish_for_collection(collection)
         except Exception, ex:
             self.logger.error(ex)
@@ -73,7 +73,7 @@ class AsyncRevisionStackManager(object):
     @coroutine
     def publish_for_collection(self, collection_name):
 
-        self.revisions = BaseAsyncMotorDocument(collection_name)
+        self.revisions = BaseAsyncMotorDocument("%s_revisions" % collection_name, self.settings)
 
         changes = yield self.__get_pending_revisions()
 
@@ -82,18 +82,21 @@ class AsyncRevisionStackManager(object):
             self.logger.info("%s revisions will be actioned" % len(changes))
 
             for change in changes:
+                try:
+                    self.logger.info("Applying %s action %s - %s to document: %s/%s" % (change.get("action"), change.get("id"), change.get("meta",{}).get("comment", "No Comment"), change.get("collection"), change.get("master_id")))
 
-                self.logger.info("Applying %s action %s - %s to document: %s/%s" % (change.get("action"), change.get("id"), change.get("meta",{}).get("comment", "No Comment"), change.get("collection"), change.get("master_id")))
+                    stack = AsyncSchedulableDocumentRevisionStack(
+                        change.get("collection"),
+                        self.settings,
+                        master_id=change.get("master_id")
+                    )
 
-                stack = AsyncSchedulableDocumentRevisionStack(
-                    change.get("collection"),
-                    master_id=change.get("master_id")
-                )
-                revision = yield stack.pop()
+                    revision = yield stack.pop()
 
-                self.logger.debug(revision)
+                    self.logger.debug(revision)
 
-
+                except Exception, ex:
+                    self.logger.error(ex)
 
 class AsyncSchedulableDocumentRevisionStack(object):
     """This class manages a stack of revisions for a given document in a given collection"""

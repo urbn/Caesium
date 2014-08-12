@@ -7,7 +7,7 @@ import json
 import tornado.web
 from bson.objectid import ObjectId
 import logging
-from pymongo.errors import InvalidDocument, InvalidOperation
+from pymongo.errors import InvalidDocument, InvalidOperation, InvalidId
 from bson import json_util
 from jsonschema import ValidationError
 from document import AsyncSchedulableDocumentRevisionStack, BaseAsyncMotorDocument
@@ -156,7 +156,7 @@ class BaseHandler(tornado.web.RequestHandler):
         """Creates the meta data dictionary for a revision"""
         return {
             "comment": self.request.headers.get("comment", ""),
-            "author": self.get_current_user()
+            "author": self.get_current_user() or self.settings.get('annonymous_user')
         }
 
     def json_obj_to_cursor(self, json):
@@ -193,7 +193,6 @@ class BaseHandler(tornado.web.RequestHandler):
     def return_resource(self, resource, status=200, statusMessage="OK"):
         self.set_status(status, statusMessage)
         self.write(json.loads(json_util.dumps(resource)))
-
 
     def group_objects_by(self, list, attr, valueLabel="value", childrenLabel="children"):
         """
@@ -249,113 +248,6 @@ class BaseHandler(tornado.web.RequestHandler):
 
 
 
-class BaseRestHandler(BaseHandler):
-    """Restful resources share a common convention.  A standard resource should be able to
-        inherit from this class and quickly implement a new Document type"""
-
-    def initialize(self):
-        """Initializer for the handler"""
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.model = None
-
-    def get(self, id):
-        """Get resource by bson objectID"""
-        try:
-
-            resource = self.model.get_from_id(ObjectId(id))
-
-            if resource:
-                self.write(self.obj_cursor_to_json(resource))
-                return
-
-            self.raise_error(404, "%s not found" % self.model.__class__.__name__.replace("Callable", ""))
-        except InvalidId, ex:
-            self.raise_error(status=400, message="Your ID is malformed: %s" % id)
-        except Exception, ex:
-            self.logger.error(ex)
-            self.raise_error()
-
-    @tornado.web.authenticated
-    def put(self, id):
-        """Update by bson ObjectId"""
-        try:
-            resource = self.model.json_obj_to_document(self.request.body)
-
-            resource["_id"] = ObjectId(id)
-
-            resource.save()
-
-            self.write(self.model.obj_cursor_to_json(resource))
-
-        except ValueError, ex:
-            self.raise_error(400, "Invalid JSON Body, check formatting. %s" % ex[0])
-        except InvalidId, ex:
-            self.raise_error(message="Your ID is malformed: %s" % id)
-        except Exception, ex:
-            self.logger.error(ex)
-            self.raise_error()
-
-    @tornado.web.removeslash
-    @tornado.web.authenticated
-    def post(self, id):
-        """Create a new resource"""
-        try:
-            resource = self.model.json_obj_to_document(self.request.body)
-
-            resource.save()
-
-            self.write(self.model.obj_cursor_to_json(resource))
-
-        except ValueError, ex:
-            self.raise_error(400, "Invalid JSON Body, check formatting. %s" % ex[0])
-        except InvalidOperation, ex:
-            self.raise_error(403, message="The resource you are attempting to insert, already exists")
-        except InvalidDocument, ex:
-            self.raise_error(400, message="Missing required fields")
-        except Exception, ex:
-            self.logger.error(ex)
-            self.raise_error()
-
-    @tornado.web.authenticated
-    def delete(self, id):
-        """Delete a resource by bson id"""
-        try:
-
-            resource = self.model.get_from_id(ObjectId(id))
-
-            if resource:
-                resource.delete()
-                self.write({"message" : "Deleted object: %s" % id})
-                return
-
-            self.raise_error(404, "Resource not found")
-
-        except InvalidId, ex:
-            self.logger.error(ex)
-            self.raise_error(400, message="Your ID is malformed: %s" % id)
-        except Exception, ex:
-            self.logger.error(ex)
-            self.raise_error()
-
-class BaseListHandler(BaseHandler):
-    """Can provide a list of objects based on a provided model"""
-
-    def initialize(self):
-        """Initializer for the handler"""
-        self.logger = logging.getLogger(self.__class__.__name__)
-        self.model = None
-
-    def get(self):
-        objects = self.model.find()
-        json = self.list_cursor_to_json(objects)
-
-        self.write(
-            {
-                "count": len(objects),
-                "result": json
-            }
-        )
-
 
 class BaseRestfulMotorHandler(BaseHandler):
 
@@ -388,7 +280,7 @@ class BaseRestfulMotorHandler(BaseHandler):
                 self.write(object)
                 return
 
-            self.raise_error(404, "%s not found" % self.object_name )
+            self.raise_error(404, "%s/%s not found" %(self.object_name, id ))
 
         except InvalidId, ex:
             self.raise_error(400, message="Your ID is malformed: %s" % id)
@@ -400,7 +292,6 @@ class BaseRestfulMotorHandler(BaseHandler):
 
 
     @coroutine
-    @authenticated
     def put(self, id):
         """
         Update a store by bson ObjectId
@@ -423,7 +314,7 @@ class BaseRestfulMotorHandler(BaseHandler):
 
             if ttl:
 
-                stack = AsyncSchedulableDocumentRevisionStack(self.client.collection_name, master_id=id)
+                stack = AsyncSchedulableDocumentRevisionStack(self.client.collection_name, self.settings, master_id=id)
                 revision_id = yield stack.push(object, int(ttl), meta=self._get_meta_data())
 
                 if isinstance(revision_id, str):
@@ -462,7 +353,6 @@ class BaseRestfulMotorHandler(BaseHandler):
 
 
     @coroutine
-    @authenticated
     def post(self, id=None):
         """
         Create a new object resource
@@ -478,7 +368,7 @@ class BaseRestfulMotorHandler(BaseHandler):
 
             if ttl:
                 # Async create flow
-                stack = AsyncSchedulableDocumentRevisionStack(self.client.collection_name)
+                stack = AsyncSchedulableDocumentRevisionStack(self.client.collection_name, self.settings)
 
                 revision_id = yield stack.push(base_object, ttl=int(ttl), meta=self._get_meta_data())
                 resource = yield stack.preview(revision_id)
@@ -506,7 +396,6 @@ class BaseRestfulMotorHandler(BaseHandler):
             self.raise_error()
 
     @coroutine
-    @authenticated
     def delete(self, id):
         """
         Delete a store resource by bson id
@@ -525,8 +414,6 @@ class BaseRestfulMotorHandler(BaseHandler):
         except:
             self.raise_error()
 
-
-
 class BaseRevisionList(BaseRestfulMotorHandler):
 
     def initialize(self):
@@ -540,7 +427,7 @@ class BaseRevisionList(BaseRestfulMotorHandler):
         collection_name = self.request.headers.get("collection")
 
         if collection_name:
-            stack = AsyncSchedulableDocumentRevisionStack(collection_name, master_id=master_id)
+            stack = AsyncSchedulableDocumentRevisionStack(collection_name, self.settings, master_id=master_id, )
             objects = yield stack._lazy_migration(meta=self._get_meta_data())
             raise Return(objects)
 
@@ -610,36 +497,33 @@ class RevisionHandler(BaseRestfulMotorHandler):
         self.client = None
 
     @coroutine
-    @authenticated
     def put(self, id):
         collection_name = self.request.headers.get("collection")
 
         if not collection_name:
-            self.raise_error("Missing a collection name header")
+            self.raise_error(400, "Missing a collection name header")
 
         self.client = BaseAsyncMotorDocument("%s_revisions" % collection_name)
 
         super(self.__class__, self).put(id)
 
     @coroutine
-    @authenticated
     def delete(self, id):
         collection_name = self.request.headers.get("collection")
 
         if not collection_name:
-            self.raise_error("Missing a collection name header")
+            self.raise_error(400, "Missing a collection name header")
 
         self.client = BaseAsyncMotorDocument("%s_revisions" % collection_name)
 
         super(self.__class__, self).delete(id)
 
     @coroutine
-    @authenticated
     def post(self, id=None):
         collection_name = self.request.headers.get("collection")
 
         if not collection_name:
-            self.raise_error("Missing a collection name header")
+            self.raise_error(400, "Missing a collection name header")
 
         self.client = BaseAsyncMotorDocument("%s_revisions" % collection_name)
 
@@ -647,19 +531,17 @@ class RevisionHandler(BaseRestfulMotorHandler):
 
 
     @coroutine
-    @authenticated
     def get(self, id):
         """Get a preview of a revision"""
         collection_name = self.request.headers.get("collection")
 
         if not collection_name:
-            self.raise_error("Missing a collection name for stack")
+            self.raise_error(400, "Missing a collection name for stack")
 
-        self.stack = AsyncSchedulableDocumentRevisionStack(collection_name)
+        self.stack = AsyncSchedulableDocumentRevisionStack(collection_name, self.settings)
 
         revision = yield self.stack.preview(id)
         self.write(revision)
-
 
 
 class BaseMotorSearch(BaseHandler):
@@ -708,7 +590,7 @@ class BaseBulkScheduleableUpdateHandler(BaseHandler):
 
         self.get_json_argument("ids", [])
         for id in ids:
-            stack = AsyncSchedulableDocumentRevisionStack(self.client.collection_name, master_id=id)
+            stack = AsyncSchedulableDocumentRevisionStack(self.client.collection_name, self.settings, master_id=id)
             stack.push(patch, ttl=ttl, meta=meta)
 
         self.write({
@@ -728,7 +610,7 @@ class BaseBulkScheduleableUpdateHandler(BaseHandler):
         collection_name = self.request.headers.get("collection")
 
         if not collection_name:
-            self.raise_error("Missing a collection name header")
+            self.raise_error(400, "Missing a collection name header")
 
         self.revisions = BaseAsyncMotorDocument("%s_revisions" % collection_name)
 
