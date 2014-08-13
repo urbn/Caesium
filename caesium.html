@@ -1,0 +1,627 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>caesium package &mdash; Caesium 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Caesium 0.2 documentation" href="index.html" />
+    <link rel="prev" title="Welcome to Caesium’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Caesium’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Caesium 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="caesium-package">
+<h1>caesium package<a class="headerlink" href="#caesium-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="module-caesium.document">
+<span id="caesium-document-module"></span><h2>caesium.document module<a class="headerlink" href="#module-caesium.document" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="caesium.document.AsyncRevisionStackManager">
+<em class="property">class </em><tt class="descclassname">caesium.document.</tt><tt class="descname">AsyncRevisionStackManager</tt><big>(</big><em>settings</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncRevisionStackManager"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncRevisionStackManager" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Find revisions for any document type and action the revision</p>
+<dl class="method">
+<dt id="caesium.document.AsyncRevisionStackManager.publish">
+<tt class="descname">publish</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncRevisionStackManager.publish"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncRevisionStackManager.publish" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.AsyncRevisionStackManager.publish_for_collection">
+<tt class="descname">publish_for_collection</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncRevisionStackManager.publish_for_collection"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncRevisionStackManager.publish_for_collection" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.AsyncRevisionStackManager.set_all_revisions_to_in_process">
+<tt class="descname">set_all_revisions_to_in_process</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncRevisionStackManager.set_all_revisions_to_in_process"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncRevisionStackManager.set_all_revisions_to_in_process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack">
+<em class="property">class </em><tt class="descclassname">caesium.document.</tt><tt class="descname">AsyncSchedulableDocumentRevisionStack</tt><big>(</big><em>collection_name</em>, <em>settings</em>, <em>collection_schema=None</em>, <em>master_id=None</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncSchedulableDocumentRevisionStack"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>This class manages a stack of revisions for a given document in a given collection</p>
+<dl class="attribute">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack.DELETE_ACTION">
+<tt class="descname">DELETE_ACTION</tt><em class="property"> = 'delete'</em><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack.DELETE_ACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack.INSERT_ACTION">
+<tt class="descname">INSERT_ACTION</tt><em class="property"> = 'insert'</em><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack.INSERT_ACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack.SCHEMA">
+<tt class="descname">SCHEMA</tt><em class="property"> = {'required': ['toa', 'processed', 'collection', 'master_id', 'action', 'patch'], 'type': 'object', 'properties': {'master_id': {'type': 'string'}, 'snapshot': {'type': 'object'}, 'processed': {'type': 'boolean'}, 'action': {'type': 'string'}, 'meta': {'type': 'object'}, 'toa': {'type': 'number'}, 'collection': {'type': 'string'}, 'patch': {'type': ['object', 'null']}}, 'title': 'Schedulable Revision Document'}</em><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack.SCHEMA" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack.UPDATE_ACTION">
+<tt class="descname">UPDATE_ACTION</tt><em class="property"> = 'update'</em><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack.UPDATE_ACTION" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack.list">
+<tt class="descname">list</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncSchedulableDocumentRevisionStack.list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack.list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return all revisions
+:param show_history:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack.peek">
+<tt class="descname">peek</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncSchedulableDocumentRevisionStack.peek"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack.peek" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the top object on the stack for this ID
+:rtype : object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack.pop">
+<tt class="descname">pop</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncSchedulableDocumentRevisionStack.pop"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack.pop" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pop the top revision off the stack back onto the collection at the given id</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack.preview">
+<tt class="descname">preview</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncSchedulableDocumentRevisionStack.preview"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack.preview" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an ephemeral preview of a revision with all
+revisions applied between it and the current state</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack.push">
+<tt class="descname">push</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncSchedulableDocumentRevisionStack.push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack.push" title="Permalink to this definition">¶</a></dt>
+<dd><p>Push a change on to the revision stack for this object
+:param dict patch: None Denotes Delete
+:param int toa:
+:param bool delete:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.AsyncSchedulableDocumentRevisionStack.search">
+<tt class="descname">search</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#AsyncSchedulableDocumentRevisionStack.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.AsyncSchedulableDocumentRevisionStack.search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find a revision by either unique bson id or numeric revision within the stack</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>string</strong> (<em>id</em>) &#8211; Bson object id as a string</li>
+<li><strong>int</strong> (<em>number</em>) &#8211; The numerical version in the stack from oldest to newest</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="caesium.document.BSONEncoder">
+<em class="property">class </em><tt class="descclassname">caesium.document.</tt><tt class="descname">BSONEncoder</tt><big>(</big><em>skipkeys=False</em>, <em>ensure_ascii=True</em>, <em>check_circular=True</em>, <em>allow_nan=True</em>, <em>sort_keys=False</em>, <em>indent=None</em>, <em>separators=None</em>, <em>encoding='utf-8'</em>, <em>default=None</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BSONEncoder"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BSONEncoder" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">json.encoder.JSONEncoder</span></tt></p>
+<p>BSONEncorder is used to transform certain value types to a more desirable format</p>
+<dl class="method">
+<dt id="caesium.document.BSONEncoder.default">
+<tt class="descname">default</tt><big>(</big><em>obj</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BSONEncoder.default"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BSONEncoder.default" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="caesium.document.BaseAsyncMotorDocument">
+<em class="property">class </em><tt class="descclassname">caesium.document.</tt><tt class="descname">BaseAsyncMotorDocument</tt><big>(</big><em>collection_name</em>, <em>settings</em>, <em>schema=None</em>, <em>scheduleable=False</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<p>Concrete abstract class for a mongo collection and document interface</p>
+<dl class="method">
+<dt id="caesium.document.BaseAsyncMotorDocument.create_index">
+<tt class="descname">create_index</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument.create_index"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument.create_index" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a geospatial 2d index on a given attribute</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.BaseAsyncMotorDocument.delete">
+<tt class="descname">delete</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a document or create a DELETE revision</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.BaseAsyncMotorDocument.find">
+<tt class="descname">find</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument.find"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument.find" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find a document by any criteria</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.BaseAsyncMotorDocument.find_one">
+<tt class="descname">find_one</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument.find_one"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument.find_one" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find one wrapper with conversion to dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.BaseAsyncMotorDocument.find_one_by_id">
+<tt class="descname">find_one_by_id</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument.find_one_by_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument.find_one_by_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.BaseAsyncMotorDocument.insert">
+<tt class="descname">insert</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument.insert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument.insert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a docume  nt
+:param dct:
+:rtype str:
+:returns string bson id:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.BaseAsyncMotorDocument.location_based_search">
+<tt class="descname">location_based_search</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument.location_based_search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument.location_based_search" title="Permalink to this definition">¶</a></dt>
+<dd><p>Search based on location and other attribute filters</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.BaseAsyncMotorDocument.patch">
+<tt class="descname">patch</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument.patch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument.patch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update an existing document</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.BaseAsyncMotorDocument.update">
+<tt class="descname">update</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument.update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument.update" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update an existing document</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.document.BaseAsyncMotorDocument.upsert">
+<tt class="descname">upsert</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/document.html#BaseAsyncMotorDocument.upsert"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.BaseAsyncMotorDocument.upsert" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update or Insert a new document</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="caesium.document.DocumentRevisionDeleteFailed">
+<em class="property">exception </em><tt class="descclassname">caesium.document.</tt><tt class="descname">DocumentRevisionDeleteFailed</tt><a class="reference internal" href="_modules/caesium/document.html#DocumentRevisionDeleteFailed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.DocumentRevisionDeleteFailed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>Occurs when the async delete process fails</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="caesium.document.DocumentRevisionInsertFailed">
+<em class="property">exception </em><tt class="descclassname">caesium.document.</tt><tt class="descname">DocumentRevisionInsertFailed</tt><a class="reference internal" href="_modules/caesium/document.html#DocumentRevisionInsertFailed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.DocumentRevisionInsertFailed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+<p>Occurs when the revisioned document insert fails</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="caesium.document.NoRevisionsAvailable">
+<em class="property">exception </em><tt class="descclassname">caesium.document.</tt><tt class="descname">NoRevisionsAvailable</tt><a class="reference internal" href="_modules/caesium/document.html#NoRevisionsAvailable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.NoRevisionsAvailable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="caesium.document.RevisionActionNotValid">
+<em class="property">exception </em><tt class="descclassname">caesium.document.</tt><tt class="descname">RevisionActionNotValid</tt><a class="reference internal" href="_modules/caesium/document.html#RevisionActionNotValid"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.RevisionActionNotValid" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="caesium.document.RevisionNotFound">
+<em class="property">exception </em><tt class="descclassname">caesium.document.</tt><tt class="descname">RevisionNotFound</tt><a class="reference internal" href="_modules/caesium/document.html#RevisionNotFound"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.RevisionNotFound" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="caesium.document.RevisionNotFoundException">
+<em class="property">exception </em><tt class="descclassname">caesium.document.</tt><tt class="descname">RevisionNotFoundException</tt><a class="reference internal" href="_modules/caesium/document.html#RevisionNotFoundException"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.RevisionNotFoundException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="caesium.document.RevisionUpdateFailed">
+<em class="property">exception </em><tt class="descclassname">caesium.document.</tt><tt class="descname">RevisionUpdateFailed</tt><a class="reference internal" href="_modules/caesium/document.html#RevisionUpdateFailed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.document.RevisionUpdateFailed" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-caesium.handler">
+<span id="caesium-handler-module"></span><h2>caesium.handler module<a class="headerlink" href="#module-caesium.handler" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="caesium.handler.BaseBulkScheduleableUpdateHandler">
+<em class="property">class </em><tt class="descclassname">caesium.handler.</tt><tt class="descname">BaseBulkScheduleableUpdateHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseBulkScheduleableUpdateHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseBulkScheduleableUpdateHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#caesium.handler.BaseHandler" title="caesium.handler.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">caesium.handler.BaseHandler</span></tt></a></p>
+<p>Bulk update objects by id and patch</p>
+<dl class="method">
+<dt id="caesium.handler.BaseBulkScheduleableUpdateHandler.delete">
+<tt class="descname">delete</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseBulkScheduleableUpdateHandler.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseBulkScheduleableUpdateHandler.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update many objects with a single toa</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseBulkScheduleableUpdateHandler.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseBulkScheduleableUpdateHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseBulkScheduleableUpdateHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseBulkScheduleableUpdateHandler.put">
+<tt class="descname">put</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseBulkScheduleableUpdateHandler.put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseBulkScheduleableUpdateHandler.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update many objects with a single toa</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="caesium.handler.BaseHandler">
+<em class="property">class </em><tt class="descclassname">caesium.handler.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></p>
+<p>A class to collect common handler methods 
+* all other handlers should subclass this across apps.</p>
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.arg_as_array">
+<tt class="descname">arg_as_array</tt><big>(</big><em>arg</em>, <em>splitChar='|'</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.arg_as_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.arg_as_array" title="Permalink to this definition">¶</a></dt>
+<dd><p>Turns an argument into an array, split by the splitChar</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.get_arg_value_as_type">
+<tt class="descname">get_arg_value_as_type</tt><big>(</big><em>key</em>, <em>default=None</em>, <em>convert_int=False</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_arg_value_as_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_arg_value_as_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.get_current_user">
+<tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_current_user" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.get_dict_of_all_args">
+<tt class="descname">get_dict_of_all_args</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_dict_of_all_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_dict_of_all_args" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a dictionary from a handler paths query string and returns it</p>
+<p>returns Dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.get_dict_of_args">
+<tt class="descname">get_dict_of_args</tt><big>(</big><em>argList</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_dict_of_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_dict_of_args" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.get_json_argument">
+<tt class="descname">get_json_argument</tt><big>(</big><em>name</em>, <em>default=None</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_json_argument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_json_argument" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find and return the argument with key &#8216;name&#8217;
+from JSON request data. Similar to Tornado&#8217;s get_argument() method.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.get_mongo_query_from_arguments">
+<tt class="descname">get_mongo_query_from_arguments</tt><big>(</big><em>reserved_attributes=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_mongo_query_from_arguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_mongo_query_from_arguments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a mongo query from the given URL query parameters,
+handles OR query via multiples
+&#64;return: dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.group_objects_by">
+<tt class="descname">group_objects_by</tt><big>(</big><em>list</em>, <em>attr</em>, <em>valueLabel='value'</em>, <em>childrenLabel='children'</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.group_objects_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.group_objects_by" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates a group object based on the attribute value on of the given attr value that is passed in.</p>
+<p>&#64;param list: A list of dictionary objects
+&#64;param attr: The attribute that the dictionaries should be sorted upon
+&#64;param valueLabel: What to call the key of the field we&#8217;re sorting upon
+&#64;param childrenLabel: What to call the list of child objects on the group object
+&#64;return:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.json_obj_to_cursor">
+<tt class="descname">json_obj_to_cursor</tt><big>(</big><em>json</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.json_obj_to_cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.json_obj_to_cursor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a JSON object to a mongo db cursor</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.list_cursor_to_json">
+<tt class="descname">list_cursor_to_json</tt><big>(</big><em>cursor</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.list_cursor_to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.list_cursor_to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convenience method for converting a mongokit or pymongo list cursor into a JSON object for return</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.load_json">
+<tt class="descname">load_json</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.load_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.load_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load JSON from the request body and store them in
+self.request.arguments, like Tornado does by default for POSTed form
+parameters.</p>
+<p>If JSON cannot be decoded, raises an HTTPError with status 400.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.obj_cursor_to_json">
+<tt class="descname">obj_cursor_to_json</tt><big>(</big><em>cursor</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.obj_cursor_to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.obj_cursor_to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Handle conversion of pymongo cursor into a JSON object formatted for UI consumption</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.raise_error">
+<tt class="descname">raise_error</tt><big>(</big><em>status=500</em>, <em>message='Generic server error.  Out of luck...'</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.raise_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.raise_error" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sets an error status and returns a message to the user in JSON format
+&#64;param status:
+&#64;param message:</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.return_resource">
+<tt class="descname">return_resource</tt><big>(</big><em>resource</em>, <em>status=200</em>, <em>statusMessage='OK'</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.return_resource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.return_resource" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.set_arg_value_to_type">
+<tt class="descname">set_arg_value_to_type</tt><big>(</big><em>val</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.set_arg_value_to_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.set_arg_value_to_type" title="Permalink to this definition">¶</a></dt>
+<dd><p>Allow users to pass through truthy type values like true, yes, no and get to a typed variable in your code</p>
+<p>returns</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.unauthorized">
+<tt class="descname">unauthorized</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.unauthorized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.unauthorized" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard Unauthorized response</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseHandler.write_hyper_response">
+<tt class="descname">write_hyper_response</tt><big>(</big><em>links=</em>, <span class="optional">[</span><span class="optional">]</span><em>meta={}</em>, <em>entity_name=None</em>, <em>entity=None</em>, <em>notifications=</em>, <span class="optional">[</span><span class="optional">]</span><em>actions=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.write_hyper_response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.write_hyper_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes a hyper media response object</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="caesium.handler.BaseMotorSearch">
+<em class="property">class </em><tt class="descclassname">caesium.handler.</tt><tt class="descname">BaseMotorSearch</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseMotorSearch"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseMotorSearch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#caesium.handler.BaseHandler" title="caesium.handler.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">caesium.handler.BaseHandler</span></tt></a></p>
+<p>Handles searching of the stores endpoint</p>
+<dl class="method">
+<dt id="caesium.handler.BaseMotorSearch.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseMotorSearch.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseMotorSearch.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Standard search end point for a resource of any type, override this get method as necessary
+in any specifc sub class.  This is mostly here as a convenience for basic querying functionality.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseMotorSearch.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseMotorSearch.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseMotorSearch.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer for the Search Handler</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="caesium.handler.BaseRestfulMotorHandler">
+<em class="property">class </em><tt class="descclassname">caesium.handler.</tt><tt class="descname">BaseRestfulMotorHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseRestfulMotorHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseRestfulMotorHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#caesium.handler.BaseHandler" title="caesium.handler.BaseHandler"><tt class="xref py py-class docutils literal"><span class="pre">caesium.handler.BaseHandler</span></tt></a></p>
+<p>Handles the restful endpoints for a mongo document resource, also has some concerns on
+how to handle document revision scheduling.</p>
+<dl class="method">
+<dt id="caesium.handler.BaseRestfulMotorHandler.delete">
+<tt class="descname">delete</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseRestfulMotorHandler.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseRestfulMotorHandler.delete" title="Permalink to this definition">¶</a></dt>
+<dd><p>Delete a store resource by bson id</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseRestfulMotorHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseRestfulMotorHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseRestfulMotorHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get an by object by unique identifier</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Id string id:</th><td class="field-body">the bson id of an object</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseRestfulMotorHandler.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseRestfulMotorHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseRestfulMotorHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer for the app config handler</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseRestfulMotorHandler.post">
+<tt class="descname">post</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseRestfulMotorHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseRestfulMotorHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new object resource</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseRestfulMotorHandler.put">
+<tt class="descname">put</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseRestfulMotorHandler.put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseRestfulMotorHandler.put" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update a store by bson ObjectId</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Id:</th><td class="field-body">bson ObjectId:</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Json:</th><td class="field-body">&lt;store&gt; post body</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Store</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="caesium.handler.BaseRevisionList">
+<em class="property">class </em><tt class="descclassname">caesium.handler.</tt><tt class="descname">BaseRevisionList</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseRevisionList"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseRevisionList" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#caesium.handler.BaseRestfulMotorHandler" title="caesium.handler.BaseRestfulMotorHandler"><tt class="xref py py-class docutils literal"><span class="pre">caesium.handler.BaseRestfulMotorHandler</span></tt></a></p>
+<dl class="method">
+<dt id="caesium.handler.BaseRevisionList.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseRevisionList.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseRevisionList.get" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.BaseRevisionList.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseRevisionList.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseRevisionList.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer for the Search Handler</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="caesium.handler.RevisionHandler">
+<em class="property">class </em><tt class="descclassname">caesium.handler.</tt><tt class="descname">RevisionHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#RevisionHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.RevisionHandler" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#caesium.handler.BaseRestfulMotorHandler" title="caesium.handler.BaseRestfulMotorHandler"><tt class="xref py py-class docutils literal"><span class="pre">caesium.handler.BaseRestfulMotorHandler</span></tt></a></p>
+<dl class="method">
+<dt id="caesium.handler.RevisionHandler.delete">
+<tt class="descname">delete</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#RevisionHandler.delete"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.RevisionHandler.delete" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.RevisionHandler.get">
+<tt class="descname">get</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#RevisionHandler.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.RevisionHandler.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a preview of a revision</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.RevisionHandler.initialize">
+<tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#RevisionHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.RevisionHandler.initialize" title="Permalink to this definition">¶</a></dt>
+<dd><p>Initializer for the Search Handler</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.RevisionHandler.post">
+<tt class="descname">post</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#RevisionHandler.post"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.RevisionHandler.post" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="caesium.handler.RevisionHandler.put">
+<tt class="descname">put</tt><big>(</big><em>*args</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#RevisionHandler.put"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.RevisionHandler.put" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">caesium package</a><ul>
+<li><a class="reference internal" href="#module-caesium.document">caesium.document module</a></li>
+<li><a class="reference internal" href="#module-caesium.handler">caesium.handler module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to Caesium&#8217;s documentation!</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/caesium.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to Caesium’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">Caesium 0.2 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Christopher D. Hunter.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,714 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>caesium.handler &mdash; Caesium 0.2 documentation</title>
+    
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '0.2',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="Caesium 0.2 documentation" href="../../index.html" />
+    <link rel="up" title="Module code" href="../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Caesium 0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for caesium.handler</h1><div class="highlight"><pre>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;hunt3r&#39;</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">A base handlers module</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">tornado.web</span>
+<span class="kn">from</span> <span class="nn">bson.objectid</span> <span class="kn">import</span> <span class="n">ObjectId</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+<span class="kn">from</span> <span class="nn">pymongo.errors</span> <span class="kn">import</span> <span class="n">InvalidDocument</span><span class="p">,</span> <span class="n">InvalidOperation</span><span class="p">,</span> <span class="n">InvalidId</span>
+<span class="kn">from</span> <span class="nn">bson</span> <span class="kn">import</span> <span class="n">json_util</span>
+<span class="kn">from</span> <span class="nn">jsonschema</span> <span class="kn">import</span> <span class="n">ValidationError</span>
+<span class="kn">from</span> <span class="nn">document</span> <span class="kn">import</span> <span class="n">AsyncSchedulableDocumentRevisionStack</span><span class="p">,</span> <span class="n">BaseAsyncMotorDocument</span>
+<span class="kn">from</span> <span class="nn">tornado.gen</span> <span class="kn">import</span> <span class="n">coroutine</span>
+<span class="kn">from</span> <span class="nn">tornado.web</span> <span class="kn">import</span> <span class="n">authenticated</span>
+<span class="kn">from</span> <span class="nn">tornado.gen</span> <span class="kn">import</span> <span class="n">Return</span>
+<span class="kn">import</span> <span class="nn">uuid</span>
+
+<span class="n">GLOBAL_RESERVED_QUERYSTRING_PARAMS</span> <span class="o">=</span> <span class="p">[]</span>
+
+<div class="viewcode-block" id="BaseHandler"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;A class to collect common handler methods </span>
+<span class="sd">    * all other handlers should subclass this across apps.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BaseHandler.initialize"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.load_json"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.load_json">[docs]</a>    <span class="k">def</span> <span class="nf">load_json</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Load JSON from the request body and store them in</span>
+<span class="sd">        self.request.arguments, like Tornado does by default for POSTed form</span>
+<span class="sd">        parameters.</span>
+
+<span class="sd">        If JSON cannot be decoded, raises an HTTPError with status 400.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;Could not decode JSON: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.get_json_argument"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_json_argument">[docs]</a>    <span class="k">def</span> <span class="nf">get_json_argument</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">            Find and return the argument with key &#39;name&#39;</span>
+<span class="sd">            from JSON request data. Similar to Tornado&#39;s get_argument() method.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="n">default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ARG_DEFAULT</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">load_json</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ARG_DEFAULT</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s">&quot;Missing argument &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">name</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s">&quot;Returning default argument </span><span class="si">%s</span><span class="s">, as we couldn&#39;t find &quot;</span>
+                    <span class="s">&quot;&#39;</span><span class="si">%s</span><span class="s">&#39; in </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">default</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">))</span>
+            <span class="k">return</span> <span class="n">default</span>
+        <span class="n">arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">arg</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.get_dict_of_args"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_dict_of_args">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict_of_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argList</span><span class="p">):</span>
+        <span class="n">dictionary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">argList</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">and</span> <span class="n">arg</span> <span class="o">!=</span> <span class="s">&quot;urbn_key&quot;</span><span class="p">:</span>
+                <span class="n">dictionary</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="n">dictionary</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.get_dict_of_all_args"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_dict_of_all_args">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict_of_all_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Generates a dictionary from a handler paths query string and returns it</span>
+
+<span class="sd">        returns Dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">dictionary</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="n">arg</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="n">arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">GLOBAL_RESERVED_QUERYSTRING_PARAMS</span><span class="p">]:</span>
+            <span class="n">val</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">val</span><span class="p">:</span>
+                <span class="n">dictionary</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
+        <span class="k">return</span> <span class="n">dictionary</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.set_arg_value_to_type"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.set_arg_value_to_type">[docs]</a>    <span class="k">def</span> <span class="nf">set_arg_value_to_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Allow users to pass through truthy type values like true, yes, no and get to a typed variable in your code</span>
+
+<span class="sd">        returns</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;true&#39;</span><span class="p">,</span> <span class="s">&#39;yes&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;false&#39;</span><span class="p">,</span> <span class="s">&#39;no&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+<span class="c">#        if val.isdigit():</span>
+<span class="c">#            return int(val)</span>
+
+        <span class="k">return</span> <span class="n">val</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.get_arg_value_as_type"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_arg_value_as_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_arg_value_as_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">convert_int</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
+        <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_query_argument</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">val</span>
+
+        <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;true&#39;</span><span class="p">,</span> <span class="s">&#39;yes&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">True</span>
+
+        <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;false&#39;</span><span class="p">,</span> <span class="s">&#39;no&#39;</span><span class="p">]:</span>
+            <span class="k">return</span> <span class="bp">False</span>
+
+        <span class="k">return</span> <span class="n">val</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.get_mongo_query_from_arguments"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_mongo_query_from_arguments">[docs]</a>    <span class="k">def</span> <span class="nf">get_mongo_query_from_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reserved_attributes</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generate a mongo query from the given URL query parameters,</span>
+<span class="sd">        handles OR query via multiples</span>
+<span class="sd">        @return: dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">query</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reserved_attributes</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">query</span><span class="p">[</span><span class="s">&quot;$or&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
+                        <span class="n">query</span><span class="p">[</span><span class="s">&quot;$or&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">arg</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_arg_value_to_type</span><span class="p">(</span><span class="n">val</span><span class="p">)})</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">query</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_arg_value_to_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">arg</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+
+        <span class="k">return</span> <span class="n">query</span>
+
+</div>
+<div class="viewcode-block" id="BaseHandler.list_cursor_to_json"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.list_cursor_to_json">[docs]</a>    <span class="k">def</span> <span class="nf">list_cursor_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cursor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Convenience method for converting a mongokit or pymongo list cursor into a JSON object for return&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">obj_cursor_to_json</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="BaseHandler.obj_cursor_to_json"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.obj_cursor_to_json">[docs]</a>    <span class="k">def</span> <span class="nf">obj_cursor_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cursor</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Handle conversion of pymongo cursor into a JSON object formatted for UI consumption&quot;&quot;&quot;</span>
+        <span class="n">json_object</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_util</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">cursor</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="s">&quot;_id&quot;</span> <span class="ow">in</span> <span class="n">json_object</span><span class="p">:</span>
+            <span class="n">json_object</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">json_object</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">][</span><span class="s">&#39;$oid&#39;</span><span class="p">])</span>
+            <span class="k">del</span> <span class="n">json_object</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]</span>
+
+        <span class="c"># for key in jsonObject:</span>
+        <span class="c">#     if isinstance(jsonObject.get(key), dict):</span>
+        <span class="c">#         if jsonObject[key].get(&quot;$date&quot;):</span>
+        <span class="c">#             self.logger.info(jsonObject[key].get(&quot;$date&quot;))</span>
+        <span class="c">#             jsonObject[key] = jsonObject[key].get(&quot;$date&quot;)</span>
+
+        <span class="k">return</span> <span class="n">json_object</span>
+</div>
+    <span class="k">def</span> <span class="nf">_get_meta_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates the meta data dictionary for a revision&quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="p">{</span>
+            <span class="s">&quot;comment&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;comment&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span><span class="p">),</span>
+            <span class="s">&quot;author&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_current_user</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;annonymous_user&#39;</span><span class="p">)</span>
+        <span class="p">}</span>
+
+<div class="viewcode-block" id="BaseHandler.json_obj_to_cursor"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.json_obj_to_cursor">[docs]</a>    <span class="k">def</span> <span class="nf">json_obj_to_cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Converts a JSON object to a mongo db cursor&quot;&quot;&quot;</span>
+        <span class="n">cursor</span> <span class="o">=</span> <span class="n">json_util</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json</span><span class="p">)</span>
+        <span class="k">if</span> <span class="s">&quot;id&quot;</span> <span class="ow">in</span> <span class="n">json</span><span class="p">:</span>
+            <span class="n">cursor</span><span class="p">[</span><span class="s">&quot;_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">cursor</span><span class="p">[</span><span class="s">&quot;id&quot;</span><span class="p">])</span>
+            <span class="k">del</span> <span class="n">cursor</span><span class="p">[</span><span class="s">&quot;id&quot;</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">cursor</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.arg_as_array"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.arg_as_array">[docs]</a>    <span class="k">def</span> <span class="nf">arg_as_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">,</span> <span class="n">splitChar</span><span class="o">=</span><span class="s">&quot;|&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Turns an argument into an array, split by the splitChar&quot;&quot;&quot;</span>
+        <span class="n">valuesString</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">valuesString</span><span class="p">:</span>
+            <span class="n">valuesArray</span> <span class="o">=</span> <span class="n">valuesString</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">splitChar</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">valuesArray</span>
+        <span class="k">return</span> <span class="bp">None</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.raise_error"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.raise_error">[docs]</a>    <span class="k">def</span> <span class="nf">raise_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s">&quot;Generic server error.  Out of luck...&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Sets an error status and returns a message to the user in JSON format</span>
+<span class="sd">        @param status:</span>
+<span class="sd">        @param message:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">({</span><span class="s">&quot;message&quot;</span> <span class="p">:</span> <span class="n">message</span><span class="p">,</span>
+                    <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="n">status</span><span class="p">})</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.unauthorized"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.unauthorized">[docs]</a>    <span class="k">def</span> <span class="nf">unauthorized</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Standard Unauthorized response&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">401</span><span class="p">,</span> <span class="s">&quot;Unauthorized request, please login first&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.return_resource"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.return_resource">[docs]</a>    <span class="k">def</span> <span class="nf">return_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resource</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">statusMessage</span><span class="o">=</span><span class="s">&quot;OK&quot;</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">statusMessage</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_util</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">resource</span><span class="p">)))</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.group_objects_by"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.group_objects_by">[docs]</a>    <span class="k">def</span> <span class="nf">group_objects_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">valueLabel</span><span class="o">=</span><span class="s">&quot;value&quot;</span><span class="p">,</span> <span class="n">childrenLabel</span><span class="o">=</span><span class="s">&quot;children&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Generates a group object based on the attribute value on of the given attr value that is passed in.</span>
+
+<span class="sd">        @param list: A list of dictionary objects</span>
+<span class="sd">        @param attr: The attribute that the dictionaries should be sorted upon</span>
+<span class="sd">        @param valueLabel: What to call the key of the field we&#39;re sorting upon</span>
+<span class="sd">        @param childrenLabel: What to call the list of child objects on the group object</span>
+<span class="sd">        @return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">:</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">val</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+            <span class="n">brandName</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;brandName&quot;</span><span class="p">)</span>
+            <span class="n">newGroup</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;attribute&quot;</span><span class="p">:</span> <span class="n">attr</span><span class="p">,</span> <span class="n">valueLabel</span><span class="p">:</span> <span class="n">val</span><span class="p">,</span> <span class="n">childrenLabel</span><span class="p">:</span> <span class="p">[</span><span class="n">obj</span><span class="p">]}</span>
+
+            <span class="n">found</span> <span class="o">=</span> <span class="bp">False</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="nb">len</span><span class="p">(</span><span class="n">groups</span><span class="p">)):</span>
+                <span class="k">if</span> <span class="n">val</span> <span class="o">==</span> <span class="n">groups</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">valueLabel</span><span class="p">):</span>
+                    <span class="n">found</span> <span class="o">=</span> <span class="bp">True</span>
+                    <span class="n">groups</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="n">childrenLabel</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+                    <span class="k">pass</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">found</span><span class="p">:</span>
+                <span class="n">groups</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">newGroup</span><span class="p">)</span>
+
+
+        <span class="k">return</span> <span class="n">groups</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.get_current_user"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_current_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="BaseHandler.write_hyper_response"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.write_hyper_response">[docs]</a>    <span class="k">def</span> <span class="nf">write_hyper_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">links</span><span class="o">=</span><span class="p">[],</span> <span class="n">meta</span><span class="o">=</span><span class="p">{},</span> <span class="n">entity_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">notifications</span><span class="o">=</span><span class="p">[],</span> <span class="n">actions</span><span class="o">=</span><span class="p">[]):</span>
+        <span class="sd">&quot;&quot;&quot;Writes a hyper media response object&quot;&quot;&quot;</span>
+        <span class="k">assert</span> <span class="n">entity_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+        <span class="k">assert</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
+
+        <span class="n">meta</span><span class="o">.</span><span class="n">update</span><span class="p">({</span>
+            <span class="s">&quot;status&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_status</span><span class="p">()</span>
+        <span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">({</span>
+            <span class="s">&quot;links&quot;</span><span class="p">:</span> <span class="n">links</span><span class="p">,</span>
+            <span class="s">&quot;meta&quot;</span><span class="p">:</span> <span class="n">meta</span><span class="p">,</span>
+            <span class="n">entity_name</span><span class="p">:</span> <span class="n">entity</span><span class="p">,</span>
+            <span class="s">&quot;notifications&quot;</span><span class="p">:</span> <span class="n">notifications</span><span class="p">,</span>
+            <span class="s">&quot;actions&quot;</span><span class="p">:</span> <span class="n">actions</span>
+        <span class="p">})</span>
+
+
+
+</div></div>
+<div class="viewcode-block" id="BaseRestfulMotorHandler"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRestfulMotorHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseRestfulMotorHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+
+    <span class="sd">&quot;&quot;&quot;Handles the restful endpoints for a mongo document resource, also has some concerns on</span>
+<span class="sd">    how to handle document revision scheduling.&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BaseRestfulMotorHandler.initialize"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRestfulMotorHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Initializer for the app config handler</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">object_name</span> <span class="o">=</span> <span class="s">&quot;Object&quot;</span>
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="BaseRestfulMotorHandler.get"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRestfulMotorHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get an by object by unique identifier</span>
+
+<span class="sd">        :id string id: the bson id of an object</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Id&quot;</span><span class="p">):</span>
+                <span class="nb">object</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Id&quot;</span><span class="p">):</span> <span class="nb">id</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="nb">object</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find_one_by_id</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">object</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+                <span class="k">return</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s">&quot;</span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s"> not found&quot;</span> <span class="o">%</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object_name</span><span class="p">,</span> <span class="nb">id</span> <span class="p">))</span>
+
+        <span class="k">except</span> <span class="n">InvalidId</span><span class="p">,</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s">&quot;Your ID is malformed: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">()</span>
+
+
+
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="BaseRestfulMotorHandler.put"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRestfulMotorHandler.put">[docs]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update a store by bson ObjectId</span>
+
+<span class="sd">        :id: bson ObjectId:</span>
+<span class="sd">        :json: &lt;store&gt; post body</span>
+<span class="sd">        :return: Store</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c">#Async update flow</span>
+            <span class="nb">object</span> <span class="o">=</span> <span class="n">json_util</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+
+            <span class="n">toa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Caesium-TOA&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+            <span class="n">obj_check</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find_one_by_id</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">obj_check</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s">&quot;Resource not found: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+                <span class="k">return</span>
+
+            <span class="k">if</span> <span class="n">toa</span><span class="p">:</span>
+
+                <span class="n">stack</span> <span class="o">=</span> <span class="n">AsyncSchedulableDocumentRevisionStack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">collection_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="n">master_id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+                <span class="n">revision_id</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">stack</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="nb">object</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">toa</span><span class="p">),</span> <span class="n">meta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_meta_data</span><span class="p">())</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">revision_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;Caesium-TOA&quot;</span><span class="p">,</span> <span class="n">toa</span><span class="p">)</span>
+
+                    <span class="c">#We add the id of the original request, because we don&#39;t want to infer this</span>
+                    <span class="c">#On the client side, as the state of the client code could change easily</span>
+                    <span class="c">#We want this request to return with the originating ID as well.</span>
+                    <span class="nb">object</span><span class="p">[</span><span class="s">&quot;id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">id</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">return_resource</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s">&quot;Revision not scheduled for object: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">object</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;_id&quot;</span><span class="p">):</span>
+                    <span class="k">del</span> <span class="nb">object</span><span class="p">[</span><span class="s">&quot;_id&quot;</span><span class="p">]</span>
+
+                <span class="n">response</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">id</span><span class="p">,</span> <span class="nb">object</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;updatedExisting&quot;</span><span class="p">):</span>
+                    <span class="nb">object</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find_one_by_id</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">return_resource</span><span class="p">(</span><span class="nb">object</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s">&quot;Resource not found: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">vex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Object validation error&quot;</span><span class="p">,</span> <span class="n">vex</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&quot;Your </span><span class="si">%s</span><span class="s"> cannot be updated because it is missing required fields, see docs&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&quot;Invalid JSON Body, check formatting. </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">ex</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">except</span> <span class="n">InvalidId</span><span class="p">,</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="n">message</span><span class="o">=</span><span class="s">&quot;Your ID is malformed: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">()</span>
+
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="BaseRestfulMotorHandler.post"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRestfulMotorHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a new object resource</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+
+            <span class="n">base_object</span> <span class="o">=</span> <span class="n">json_util</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
+
+            <span class="c">#assert not hasattr(base_object, &quot;_id&quot;)</span>
+
+            <span class="n">toa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Caesium-TOA&quot;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">toa</span><span class="p">:</span>
+                <span class="c"># Async create flow</span>
+                <span class="n">stack</span> <span class="o">=</span> <span class="n">AsyncSchedulableDocumentRevisionStack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">collection_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
+
+                <span class="n">revision_id</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">stack</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">base_object</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="nb">int</span><span class="p">(</span><span class="n">toa</span><span class="p">),</span> <span class="n">meta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_meta_data</span><span class="p">())</span>
+                <span class="n">resource</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">stack</span><span class="o">.</span><span class="n">preview</span><span class="p">(</span><span class="n">revision_id</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">revision_id</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">set_header</span><span class="p">(</span><span class="s">&quot;Caesium-TOA&quot;</span><span class="p">,</span> <span class="n">toa</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">return_resource</span><span class="p">(</span><span class="n">resource</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;snapshot&quot;</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s">&quot;Revision not scheduled for object: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="nb">id</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">base_object</span><span class="p">)</span>
+                <span class="n">base_object</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find_one_by_id</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">return_resource</span><span class="p">(</span><span class="n">base_object</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">ValidationError</span><span class="p">,</span> <span class="n">vex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&quot;Store validation error&quot;</span><span class="p">,</span> <span class="n">vex</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&quot;Your </span><span class="si">%s</span><span class="s"> cannot be updated because it is missing required fields, see docs&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">object_name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">,</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&quot;Invalid JSON Body, check formatting. </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">ex</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="n">ex</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">()</span>
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="BaseRestfulMotorHandler.delete"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRestfulMotorHandler.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete a store resource by bson id</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;n&quot;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">({</span><span class="s">&quot;message&quot;</span><span class="p">:</span> <span class="s">&quot;Deleted </span><span class="si">%s</span><span class="s"> object: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">object_name</span><span class="p">,</span> <span class="nb">id</span><span class="p">)</span> <span class="p">})</span>
+                <span class="k">return</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">404</span><span class="p">,</span> <span class="s">&quot;Resource not found&quot;</span><span class="p">)</span>
+
+        <span class="k">except</span> <span class="n">InvalidId</span><span class="p">,</span> <span class="n">ex</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s">&quot;Your ID is malformed: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
+        <span class="k">except</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="BaseRevisionList"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRevisionList">[docs]</a><span class="k">class</span> <span class="nc">BaseRevisionList</span><span class="p">(</span><span class="n">BaseRestfulMotorHandler</span><span class="p">):</span>
+
+<div class="viewcode-block" id="BaseRevisionList.initialize"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRevisionList.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializer for the Search Handler&quot;&quot;&quot;</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+    <span class="nd">@coroutine</span>
+    <span class="k">def</span> <span class="nf">__lazy_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_id</span><span class="p">):</span>
+        <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">collection_name</span><span class="p">:</span>
+            <span class="n">stack</span> <span class="o">=</span> <span class="n">AsyncSchedulableDocumentRevisionStack</span><span class="p">(</span><span class="n">collection_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="n">master_id</span><span class="o">=</span><span class="n">master_id</span><span class="p">,</span> <span class="p">)</span>
+            <span class="n">objects</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">stack</span><span class="o">.</span><span class="n">_lazy_migration</span><span class="p">(</span><span class="n">meta</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_meta_data</span><span class="p">())</span>
+            <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="s">&quot;This object </span><span class="si">%s</span><span class="s">/</span><span class="si">%s</span><span class="s"> didn&#39;t exist as a revision, we tried to create it but we failed... Sorry. Please check this object&quot;</span><span class="o">%</span> <span class="p">(</span><span class="n">collection_name</span><span class="p">,</span> <span class="n">master_id</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="BaseRevisionList.get"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRevisionList.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_id</span><span class="p">):</span>
+
+        <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">BaseAsyncMotorDocument</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">_revisions&quot;</span> <span class="o">%</span> <span class="n">collection_name</span><span class="p">)</span>
+
+        <span class="n">limit</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">get_query_argument</span><span class="p">(</span><span class="s">&quot;limit&quot;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">add_current_revision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_arg_value_as_type</span><span class="p">(</span><span class="s">&quot;addCurrent&quot;</span><span class="p">,</span> <span class="s">&quot;false&quot;</span><span class="p">)</span>
+        <span class="n">show_history</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_arg_value_as_type</span><span class="p">(</span><span class="s">&quot;showHistory&quot;</span><span class="p">,</span> <span class="s">&quot;false&quot;</span><span class="p">)</span>
+
+        <span class="n">objects_processed</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">limit</span><span class="p">,</span> <span class="nb">unicode</span><span class="p">):</span>
+            <span class="n">limit</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">limit</span><span class="p">)</span>
+
+        <span class="n">objects</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s">&quot;master_id&quot;</span><span class="p">:</span> <span class="n">master_id</span><span class="p">,</span>
+                                     <span class="s">&quot;processed&quot;</span><span class="p">:</span> <span class="bp">False</span><span class="p">},</span>
+                                    <span class="n">orderby</span><span class="o">=</span><span class="s">&quot;toa&quot;</span><span class="p">,</span>
+                                    <span class="n">order_by_direction</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span>
+                                    <span class="n">page</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                    <span class="n">limit</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span>
+
+        <span class="c"># If this is a document that should have a revision and doesn&#39;t we orchestratioin</span>
+        <span class="c"># creation of the first one</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+
+            <span class="n">new_revision</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">__lazy_migration</span><span class="p">(</span><span class="n">master_id</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">new_revision</span><span class="p">:</span>
+                <span class="k">return</span>
+
+        <span class="k">if</span> <span class="n">show_history</span><span class="p">:</span>
+            <span class="n">objects_processed</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s">&quot;master_id&quot;</span><span class="p">:</span> <span class="n">master_id</span><span class="p">,</span> <span class="s">&quot;processed&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">},</span>
+                                                  <span class="n">orderby</span><span class="o">=</span><span class="s">&quot;toa&quot;</span><span class="p">,</span>
+                                                  <span class="n">order_by_direction</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                                                  <span class="n">page</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                                  <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">add_current_revision</span><span class="p">:</span>
+            <span class="n">objects_processed</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s">&quot;master_id&quot;</span><span class="p">:</span> <span class="n">master_id</span><span class="p">,</span> <span class="s">&quot;processed&quot;</span><span class="p">:</span> <span class="bp">True</span><span class="p">},</span>
+                                                  <span class="n">orderby</span><span class="o">=</span><span class="s">&quot;toa&quot;</span><span class="p">,</span>
+                                                  <span class="n">order_by_direction</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span>
+                                                  <span class="n">page</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                                                  <span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects_processed</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">objects_processed</span> <span class="o">=</span> <span class="n">objects_processed</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">objects_processed</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="s">&quot;current&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">True</span>
+            <span class="n">objects</span> <span class="o">=</span> <span class="n">objects_processed</span> <span class="o">+</span> <span class="n">objects</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">({</span>
+            <span class="s">&quot;count&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">),</span>
+            <span class="s">&quot;results&quot;</span><span class="p">:</span> <span class="n">objects</span>
+        <span class="p">})</span>
+
+</div></div>
+<div class="viewcode-block" id="RevisionHandler"><a class="viewcode-back" href="../../caesium.html#caesium.handler.RevisionHandler">[docs]</a><span class="k">class</span> <span class="nc">RevisionHandler</span><span class="p">(</span><span class="n">BaseRestfulMotorHandler</span><span class="p">):</span>
+
+<div class="viewcode-block" id="RevisionHandler.initialize"><a class="viewcode-back" href="../../caesium.html#caesium.handler.RevisionHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializer for the Search Handler&quot;&quot;&quot;</span>
+        <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">initialize</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="RevisionHandler.put"><a class="viewcode-back" href="../../caesium.html#caesium.handler.RevisionHandler.put">[docs]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">collection_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&quot;Missing a collection name header&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">BaseAsyncMotorDocument</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">_revisions&quot;</span> <span class="o">%</span> <span class="n">collection_name</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="RevisionHandler.delete"><a class="viewcode-back" href="../../caesium.html#caesium.handler.RevisionHandler.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">collection_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&quot;Missing a collection name header&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">BaseAsyncMotorDocument</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">_revisions&quot;</span> <span class="o">%</span> <span class="n">collection_name</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="RevisionHandler.post"><a class="viewcode-back" href="../../caesium.html#caesium.handler.RevisionHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">collection_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&quot;Missing a collection name header&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">BaseAsyncMotorDocument</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">_revisions&quot;</span> <span class="o">%</span> <span class="n">collection_name</span><span class="p">)</span>
+
+        <span class="nb">super</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="RevisionHandler.get"><a class="viewcode-back" href="../../caesium.html#caesium.handler.RevisionHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Get a preview of a revision&quot;&quot;&quot;</span>
+        <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">collection_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&quot;Missing a collection name for stack&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stack</span> <span class="o">=</span> <span class="n">AsyncSchedulableDocumentRevisionStack</span><span class="p">(</span><span class="n">collection_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
+
+        <span class="n">revision</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">stack</span><span class="o">.</span><span class="n">preview</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">revision</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="BaseMotorSearch"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseMotorSearch">[docs]</a><span class="k">class</span> <span class="nc">BaseMotorSearch</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Handles searching of the stores endpoint&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BaseMotorSearch.initialize"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseMotorSearch.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Initializer for the Search Handler&quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="BaseMotorSearch.get"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseMotorSearch.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Standard search end point for a resource of any type, override this get method as necessary</span>
+<span class="sd">        in any specifc sub class.  This is mostly here as a convenience for basic querying functionality.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">objects</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_mongo_query_from_arguments</span><span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">({</span>
+            <span class="s">&quot;count&quot;</span> <span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">),</span>
+            <span class="s">&quot;results&quot;</span><span class="p">:</span> <span class="n">objects</span>
+        <span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+</div></div>
+<div class="viewcode-block" id="BaseBulkScheduleableUpdateHandler"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseBulkScheduleableUpdateHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseBulkScheduleableUpdateHandler</span><span class="p">(</span><span class="n">BaseHandler</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Bulk update objects by id and patch&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="BaseBulkScheduleableUpdateHandler.initialize"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseBulkScheduleableUpdateHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">None</span>
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="BaseBulkScheduleableUpdateHandler.put"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseBulkScheduleableUpdateHandler.put">[docs]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update many objects with a single toa&quot;&quot;&quot;</span>
+
+        <span class="n">toa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Caesium-TOA&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">toa</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&quot;Caesium-TOA header is required, none found&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Caesium-TOA&quot;</span><span class="p">))</span>
+
+        <span class="n">meta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_meta_data</span><span class="p">()</span>
+        <span class="n">meta</span><span class="p">[</span><span class="s">&quot;bulk_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">()</span><span class="o">.</span><span class="n">get_hex</span><span class="p">()</span>
+        <span class="n">ids</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_json_argument</span><span class="p">(</span><span class="s">&quot;ids&quot;</span><span class="p">)</span>
+        <span class="n">patch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_json_argument</span><span class="p">(</span><span class="s">&quot;patch&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">get_json_argument</span><span class="p">(</span><span class="s">&quot;ids&quot;</span><span class="p">,</span> <span class="p">[])</span>
+        <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span><span class="p">:</span>
+            <span class="n">stack</span> <span class="o">=</span> <span class="n">AsyncSchedulableDocumentRevisionStack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">collection_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">,</span> <span class="n">master_id</span><span class="o">=</span><span class="nb">id</span><span class="p">)</span>
+            <span class="n">stack</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">patch</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="n">toa</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="n">meta</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">({</span>
+            <span class="s">&quot;count&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">ids</span><span class="p">),</span>
+            <span class="s">&quot;result&quot;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s">&quot;ids&quot;</span> <span class="p">:</span> <span class="n">ids</span><span class="p">,</span>
+                <span class="s">&quot;toa&quot;</span> <span class="p">:</span> <span class="n">toa</span><span class="p">,</span>
+                <span class="s">&quot;patch&quot;</span><span class="p">:</span> <span class="n">patch</span>
+            <span class="p">}</span>
+        <span class="p">})</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
+</div>
+    <span class="nd">@coroutine</span>
+<div class="viewcode-block" id="BaseBulkScheduleableUpdateHandler.delete"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseBulkScheduleableUpdateHandler.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bulk_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update many objects with a single toa&quot;&quot;&quot;</span>
+
+        <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">collection_name</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="s">&quot;Missing a collection name header&quot;</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span> <span class="o">=</span> <span class="n">BaseAsyncMotorDocument</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">_revisions&quot;</span> <span class="o">%</span> <span class="n">collection_name</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Deleting revisions with bulk_id </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">bulk_id</span><span class="p">))</span>
+
+        <span class="n">result</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">remove</span><span class="p">({</span> <span class="s">&quot;meta.bulk_id&quot;</span><span class="p">:</span> <span class="n">bulk_id</span> <span class="p">})</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+</pre></div></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">Caesium 0.2 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Christopher D. Hunter.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>
