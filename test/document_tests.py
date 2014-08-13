@@ -254,7 +254,7 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
         meta = {
             "comment" : "foo"
         }
-        bson_id = yield stack.push(self.mini_doc, ttl=self.three_min_past_now, meta=meta)
+        bson_id = yield stack.push(self.mini_doc, toa=self.three_min_past_now, meta=meta)
         revisions = yield stack.list()
         self.assertEqual(len(revisions), 1)
         revision = revisions[0]
@@ -276,7 +276,7 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
         meta = {
             "comment" : "foo"
         }
-        yield stack.push(None, ttl=self.three_min_past_now, meta=meta)
+        yield stack.push(None, toa=self.three_min_past_now, meta=meta)
 
         # Run the publish method manually
         yield stack.pop()
@@ -293,8 +293,8 @@ class TestAsyncRevisionStackAndManagerFunctions(BaseAsyncTest):
         manager = AsyncRevisionStackManager(settings)
         stack = AsyncSchedulableDocumentRevisionStack("test_fixture", settings, master_id=master_id)
 
-        yield stack.push("foo", ttl=self.three_min_past_now)
-        yield stack.push(False, ttl=self.three_min_past_now)
+        yield stack.push("foo", toa=self.three_min_past_now)
+        yield stack.push(False, toa=self.three_min_past_now)
 
     @gen_test
     def test_stack_can_produce_snapshot_of_future_revision_of_update_type(self):
