@@ -29,7 +29,7 @@ It adds a thin layer over the motor framework to vend primitive objects for use 
 
 ##Base Handlers 
 
-There are several base handlers you can leverage to speed up your development.  
+There are several base handlers you can leverage to speed up your development.  l
 
 - BaseHandler, base utilities for creating mongo queries from user input
 - BaseMotorSearch, A simple endpoint for querying an object of a given type
@@ -50,5 +50,3 @@ Scheduled actions map to RESTful verbs:
 Note: *Deletes do not delete from the revisions collection for that object type, which can allow for easy reverts, but a potentially large database*
 
 The primary way to interact with the scheduling system is to use the "Caesium-TOA" header and set a utc timestamp to the time you want your action to be performed.
-
-
