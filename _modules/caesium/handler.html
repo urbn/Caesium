@@ -1,50 +1,100 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>caesium.handler &mdash; Caesium 0.2 documentation</title>
-    
-    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    '../../',
-        VERSION:     '0.2',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="../../_static/jquery.js"></script>
-    <script type="text/javascript" src="../../_static/underscore.js"></script>
-    <script type="text/javascript" src="../../_static/doctools.js"></script>
-    <link rel="top" title="Caesium 0.2 documentation" href="../../index.html" />
-    <link rel="up" title="Module code" href="../index.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">Caesium 0.2 documentation</a> &raquo;</li>
-          <li><a href="../index.html" accesskey="U">Module code</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>caesium.handler &mdash; Caesium 0.2 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Caesium 0.2 documentation" href="../../index.html"/>
+        <link rel="up" title="Module code" href="../index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="../../index.html" class="fa fa-home"> Caesium</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../caesium.html">caesium package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="../../caesium.html#module-caesium.document">caesium.document module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../../caesium.html#module-caesium.handler">caesium.handler module</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../index.html">Caesium</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../index.html">Module code</a> &raquo;</li>
+      
+    <li>caesium.handler</li>
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <h1>Source code for caesium.handler</h1><div class="highlight"><pre>
 <span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;hunt3r&#39;</span>
@@ -65,11 +115,9 @@
 <span class="kn">from</span> <span class="nn">tornado.gen</span> <span class="kn">import</span> <span class="n">Return</span>
 <span class="kn">import</span> <span class="nn">uuid</span>
 
-<span class="n">GLOBAL_RESERVED_QUERYSTRING_PARAMS</span> <span class="o">=</span> <span class="p">[]</span>
-
 <div class="viewcode-block" id="BaseHandler"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler">[docs]</a><span class="k">class</span> <span class="nc">BaseHandler</span><span class="p">(</span><span class="n">tornado</span><span class="o">.</span><span class="n">web</span><span class="o">.</span><span class="n">RequestHandler</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;A class to collect common handler methods </span>
-<span class="sd">    * all other handlers should subclass this across apps.</span>
+    <span class="sd">&quot;&quot;&quot;A class to collect common handler methods that can be useful in your individual implementation,</span>
+<span class="sd">    this includes functions for working with query strings and Motor/Mongo type documents</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BaseHandler.initialize"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -80,7 +128,9 @@
 <span class="sd">        self.request.arguments, like Tornado does by default for POSTed form</span>
 <span class="sd">        parameters.</span>
 
-<span class="sd">        If JSON cannot be decoded, raises an HTTPError with status 400.</span>
+<span class="sd">        If JSON cannot be decoded</span>
+
+<span class="sd">        :raises ValueError: JSON Could not be decoded</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">body</span><span class="p">)</span>
@@ -90,10 +140,15 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="n">msg</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="BaseHandler.get_json_argument"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_json_argument">[docs]</a>    <span class="k">def</span> <span class="nf">get_json_argument</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">            Find and return the argument with key &#39;name&#39;</span>
-<span class="sd">            from JSON request data. Similar to Tornado&#39;s get_argument() method.</span>
+        <span class="sd">&quot;&quot;&quot;Find and return the argument with key &#39;name&#39;</span>
+<span class="sd">        from JSON request data. Similar to Tornado&#39;s get_argument() method.</span>
+
+<span class="sd">        :param str name: The name of the json key you want to get the value for</span>
+<span class="sd">        :param bool default: The default value if nothing is found</span>
+<span class="sd">        :returns: value of the argument name request</span>
+<span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
             <span class="n">default</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ARG_DEFAULT</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
@@ -109,44 +164,27 @@
         <span class="n">arg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">return</span> <span class="n">arg</span>
 </div>
-<div class="viewcode-block" id="BaseHandler.get_dict_of_args"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_dict_of_args">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict_of_args</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">argList</span><span class="p">):</span>
-        <span class="n">dictionary</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">argList</span><span class="p">:</span>
-            <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">val</span> <span class="ow">and</span> <span class="n">arg</span> <span class="o">!=</span> <span class="s">&quot;urbn_key&quot;</span><span class="p">:</span>
-                <span class="n">dictionary</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
-        <span class="k">return</span> <span class="n">dictionary</span>
-</div>
 <div class="viewcode-block" id="BaseHandler.get_dict_of_all_args"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_dict_of_all_args">[docs]</a>    <span class="k">def</span> <span class="nf">get_dict_of_all_args</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Generates a dictionary from a handler paths query string and returns it</span>
 
-<span class="sd">        returns Dictionary</span>
+<span class="sd">        :returns: Dictionary of all key/values in arguments list</span>
+<span class="sd">        :rtype: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dictionary</span> <span class="o">=</span> <span class="p">{}</span>
-        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="n">arg</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="n">arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">GLOBAL_RESERVED_QUERYSTRING_PARAMS</span><span class="p">]:</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="p">[</span><span class="n">arg</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="n">arg</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;reserved_query_string_params&quot;</span><span class="p">,</span> <span class="p">[])]:</span>
             <span class="n">val</span> <span class="o">=</span>  <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">val</span><span class="p">:</span>
                 <span class="n">dictionary</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="n">val</span>
         <span class="k">return</span> <span class="n">dictionary</span>
 </div>
-<div class="viewcode-block" id="BaseHandler.set_arg_value_to_type"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.set_arg_value_to_type">[docs]</a>    <span class="k">def</span> <span class="nf">set_arg_value_to_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">val</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseHandler.get_arg_value_as_type"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_arg_value_as_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_arg_value_as_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">convert_int</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Allow users to pass through truthy type values like true, yes, no and get to a typed variable in your code</span>
 
-<span class="sd">        returns</span>
-
+<span class="sd">        :param str val: The string reprensentation of the value you want to convert</span>
+<span class="sd">        :returns: adapted value</span>
+<span class="sd">        :rtype: dynamic</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;true&#39;</span><span class="p">,</span> <span class="s">&#39;yes&#39;</span><span class="p">]:</span>
-            <span class="k">return</span> <span class="bp">True</span>
 
-        <span class="k">if</span> <span class="n">val</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;false&#39;</span><span class="p">,</span> <span class="s">&#39;no&#39;</span><span class="p">]:</span>
-            <span class="k">return</span> <span class="bp">False</span>
-
-<span class="c">#        if val.isdigit():</span>
-<span class="c">#            return int(val)</span>
-
-        <span class="k">return</span> <span class="n">val</span>
-</div>
-<div class="viewcode-block" id="BaseHandler.get_arg_value_as_type"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_arg_value_as_type">[docs]</a>    <span class="k">def</span> <span class="nf">get_arg_value_as_type</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">convert_int</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
         <span class="n">val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_query_argument</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="nb">int</span><span class="p">):</span>
@@ -161,10 +199,10 @@
         <span class="k">return</span> <span class="n">val</span>
 </div>
 <div class="viewcode-block" id="BaseHandler.get_mongo_query_from_arguments"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_mongo_query_from_arguments">[docs]</a>    <span class="k">def</span> <span class="nf">get_mongo_query_from_arguments</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reserved_attributes</span><span class="o">=</span><span class="p">[]):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Generate a mongo query from the given URL query parameters,</span>
-<span class="sd">        handles OR query via multiples</span>
-<span class="sd">        @return: dictionary</span>
+        <span class="sd">&quot;&quot;&quot;Generate a mongo query from the given URL query parameters, handles OR query via multiples</span>
+
+<span class="sd">        :param list reserved_attributes: A list of attributes you want to exclude from this particular query</span>
+<span class="sd">        :return: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">query</span> <span class="o">=</span> <span class="p">{}</span>
@@ -173,31 +211,29 @@
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">arg</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                     <span class="n">query</span><span class="p">[</span><span class="s">&quot;$or&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
                     <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">arg</span><span class="p">):</span>
-                        <span class="n">query</span><span class="p">[</span><span class="s">&quot;$or&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">arg</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_arg_value_to_type</span><span class="p">(</span><span class="n">val</span><span class="p">)})</span>
+                        <span class="n">query</span><span class="p">[</span><span class="s">&quot;$or&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="n">arg</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_arg_value_as_type</span><span class="p">(</span><span class="n">val</span><span class="p">)})</span>
                 <span class="k">else</span><span class="p">:</span>
-                    <span class="n">query</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_arg_value_to_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">arg</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+                    <span class="n">query</span><span class="p">[</span><span class="n">arg</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_arg_value_as_type</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">arguments</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">arg</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
 
         <span class="k">return</span> <span class="n">query</span>
-
 </div>
 <div class="viewcode-block" id="BaseHandler.list_cursor_to_json"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.list_cursor_to_json">[docs]</a>    <span class="k">def</span> <span class="nf">list_cursor_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cursor</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Convenience method for converting a mongokit or pymongo list cursor into a JSON object for return&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Convenience method for converting a mongokit or pymongo list cursor into a JSON object for return</span>
+<span class="sd">        :param Cursor cursor: A motor client database cursor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">obj_cursor_to_json</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span> <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="n">cursor</span><span class="p">]</span>
 
 </div>
 <div class="viewcode-block" id="BaseHandler.obj_cursor_to_json"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.obj_cursor_to_json">[docs]</a>    <span class="k">def</span> <span class="nf">obj_cursor_to_json</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cursor</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Handle conversion of pymongo cursor into a JSON object formatted for UI consumption&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Handle conversion of pymongo cursor into a JSON object formatted for UI consumption</span>
+
+<span class="sd">        :param Cursor cursor: A motor client database cursor</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">json_object</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_util</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">cursor</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="s">&quot;_id&quot;</span> <span class="ow">in</span> <span class="n">json_object</span><span class="p">:</span>
             <span class="n">json_object</span><span class="p">[</span><span class="s">&#39;id&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">json_object</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">][</span><span class="s">&#39;$oid&#39;</span><span class="p">])</span>
             <span class="k">del</span> <span class="n">json_object</span><span class="p">[</span><span class="s">&#39;_id&#39;</span><span class="p">]</span>
-
-        <span class="c"># for key in jsonObject:</span>
-        <span class="c">#     if isinstance(jsonObject.get(key), dict):</span>
-        <span class="c">#         if jsonObject[key].get(&quot;$date&quot;):</span>
-        <span class="c">#             self.logger.info(jsonObject[key].get(&quot;$date&quot;))</span>
-        <span class="c">#             jsonObject[key] = jsonObject[key].get(&quot;$date&quot;)</span>
 
         <span class="k">return</span> <span class="n">json_object</span>
 </div>
@@ -209,7 +245,12 @@
         <span class="p">}</span>
 
 <div class="viewcode-block" id="BaseHandler.json_obj_to_cursor"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.json_obj_to_cursor">[docs]</a>    <span class="k">def</span> <span class="nf">json_obj_to_cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">json</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Converts a JSON object to a mongo db cursor&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;(Deprecated) Converts a JSON object to a mongo db cursor</span>
+
+<span class="sd">        :param str json: A json string</span>
+<span class="sd">        :returns: dictionary with ObjectId type</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cursor</span> <span class="o">=</span> <span class="n">json_util</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json</span><span class="p">)</span>
         <span class="k">if</span> <span class="s">&quot;id&quot;</span> <span class="ow">in</span> <span class="n">json</span><span class="p">:</span>
             <span class="n">cursor</span><span class="p">[</span><span class="s">&quot;_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">cursor</span><span class="p">[</span><span class="s">&quot;id&quot;</span><span class="p">])</span>
@@ -217,49 +258,68 @@
 
         <span class="k">return</span> <span class="n">cursor</span>
 </div>
-<div class="viewcode-block" id="BaseHandler.arg_as_array"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.arg_as_array">[docs]</a>    <span class="k">def</span> <span class="nf">arg_as_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">,</span> <span class="n">splitChar</span><span class="o">=</span><span class="s">&quot;|&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Turns an argument into an array, split by the splitChar&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseHandler.arg_as_array"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.arg_as_array">[docs]</a>    <span class="k">def</span> <span class="nf">arg_as_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">,</span> <span class="n">split_char</span><span class="o">=</span><span class="s">&quot;|&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Turns an argument into an array, split by the splitChar</span>
+
+<span class="sd">        :param str arg: The name of the query param you want to turn into an array based on the value</span>
+<span class="sd">        :param str split_char: The character the value should be split on.</span>
+<span class="sd">        :returns: A list of values</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">valuesString</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_argument</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">valuesString</span><span class="p">:</span>
-            <span class="n">valuesArray</span> <span class="o">=</span> <span class="n">valuesString</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">splitChar</span><span class="p">)</span>
+            <span class="n">valuesArray</span> <span class="o">=</span> <span class="n">valuesString</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">split_char</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">valuesArray</span>
+
         <span class="k">return</span> <span class="bp">None</span>
 </div>
 <div class="viewcode-block" id="BaseHandler.raise_error"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.raise_error">[docs]</a>    <span class="k">def</span> <span class="nf">raise_error</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s">&quot;Generic server error.  Out of luck...&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Sets an error status and returns a message to the user in JSON format</span>
-<span class="sd">        @param status:</span>
-<span class="sd">        @param message:</span>
+
+<span class="sd">        :param int status: The status code to use</span>
+<span class="sd">        :param str message: The message to return in the JSON response</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">status</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">({</span><span class="s">&quot;message&quot;</span> <span class="p">:</span> <span class="n">message</span><span class="p">,</span>
                     <span class="s">&quot;status&quot;</span> <span class="p">:</span> <span class="n">status</span><span class="p">})</span>
 </div>
-<div class="viewcode-block" id="BaseHandler.unauthorized"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.unauthorized">[docs]</a>    <span class="k">def</span> <span class="nf">unauthorized</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Standard Unauthorized response&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">401</span><span class="p">,</span> <span class="s">&quot;Unauthorized request, please login first&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="BaseHandler.unauthorized"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.unauthorized">[docs]</a>    <span class="k">def</span> <span class="nf">unauthorized</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s">&quot;Unauthorized request, please login first&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Standard Unauthorized response</span>
+
+<span class="sd">        :param str message: The Message to use in the error response</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">401</span><span class="p">,</span> <span class="n">message</span><span class="p">)</span>
 </div>
 <div class="viewcode-block" id="BaseHandler.return_resource"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.return_resource">[docs]</a>    <span class="k">def</span> <span class="nf">return_resource</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resource</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">statusMessage</span><span class="o">=</span><span class="s">&quot;OK&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Return a resource response</span>
+
+<span class="sd">        :param str resource: The JSON String representation of a resource response</span>
+<span class="sd">        :param int status: Status code to use</span>
+<span class="sd">        :param str statusMessage: The message to use in the error response</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_status</span><span class="p">(</span><span class="n">status</span><span class="p">,</span> <span class="n">statusMessage</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">json_util</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">resource</span><span class="p">)))</span>
+
 </div>
 <div class="viewcode-block" id="BaseHandler.group_objects_by"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.group_objects_by">[docs]</a>    <span class="k">def</span> <span class="nf">group_objects_by</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">list</span><span class="p">,</span> <span class="n">attr</span><span class="p">,</span> <span class="n">valueLabel</span><span class="o">=</span><span class="s">&quot;value&quot;</span><span class="p">,</span> <span class="n">childrenLabel</span><span class="o">=</span><span class="s">&quot;children&quot;</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Generates a group object based on the attribute value on of the given attr value that is passed in.</span>
 
-<span class="sd">        @param list: A list of dictionary objects</span>
-<span class="sd">        @param attr: The attribute that the dictionaries should be sorted upon</span>
-<span class="sd">        @param valueLabel: What to call the key of the field we&#39;re sorting upon</span>
-<span class="sd">        @param childrenLabel: What to call the list of child objects on the group object</span>
-<span class="sd">        @return:</span>
+<span class="sd">        :param list list: A list of dictionary objects</span>
+<span class="sd">        :param str attr: The attribute that the dictionaries should be sorted upon</span>
+<span class="sd">        :param str valueLabel: What to call the key of the field we&#39;re sorting upon</span>
+<span class="sd">        :param str childrenLabel: What to call the list of child objects on the group object</span>
+<span class="sd">        :returns: list of grouped objects by a given attribute</span>
+<span class="sd">        :rtype: list</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">groups</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="k">for</span> <span class="n">obj</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">:</span>
             <span class="n">val</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">attr</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">val</span><span class="p">:</span>
                 <span class="k">pass</span>
 
-            <span class="n">brandName</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;brandName&quot;</span><span class="p">)</span>
             <span class="n">newGroup</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;attribute&quot;</span><span class="p">:</span> <span class="n">attr</span><span class="p">,</span> <span class="n">valueLabel</span><span class="p">:</span> <span class="n">val</span><span class="p">,</span> <span class="n">childrenLabel</span><span class="p">:</span> <span class="p">[</span><span class="n">obj</span><span class="p">]}</span>
 
             <span class="n">found</span> <span class="o">=</span> <span class="bp">False</span>
@@ -276,10 +336,23 @@
         <span class="k">return</span> <span class="n">groups</span>
 </div>
 <div class="viewcode-block" id="BaseHandler.get_current_user"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.get_current_user">[docs]</a>    <span class="k">def</span> <span class="nf">get_current_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="s">&quot;user&quot;</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;Gets the current user from the secure cookie store</span>
+
+<span class="sd">        :returns: user name for logged in user</span>
+<span class="sd">        :rtype: str</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_secure_cookie</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;session_cookie&quot;</span><span class="p">,</span> <span class="s">&quot;user&quot;</span><span class="p">))</span>
 </div>
 <div class="viewcode-block" id="BaseHandler.write_hyper_response"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseHandler.write_hyper_response">[docs]</a>    <span class="k">def</span> <span class="nf">write_hyper_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">links</span><span class="o">=</span><span class="p">[],</span> <span class="n">meta</span><span class="o">=</span><span class="p">{},</span> <span class="n">entity_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">entity</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">notifications</span><span class="o">=</span><span class="p">[],</span> <span class="n">actions</span><span class="o">=</span><span class="p">[]):</span>
-        <span class="sd">&quot;&quot;&quot;Writes a hyper media response object&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Writes a hyper media response object</span>
+
+<span class="sd">        :param list links: A list of links to the resources</span>
+<span class="sd">        :param dict meta: The meta data for this response</span>
+<span class="sd">        :param str entity_name: The entity name</span>
+<span class="sd">        :param object entity: The Entity itself</span>
+<span class="sd">        :param list notifications: List of notifications</span>
+<span class="sd">        :param list actions: List of actions</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">assert</span> <span class="n">entity_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
         <span class="k">assert</span> <span class="n">entity</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span>
 
@@ -305,7 +378,7 @@
 
 <div class="viewcode-block" id="BaseRestfulMotorHandler.initialize"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRestfulMotorHandler.initialize">[docs]</a>    <span class="k">def</span> <span class="nf">initialize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Initializer for the app config handler</span>
+<span class="sd">        Initialize the base handler</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="bp">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
@@ -672,43 +745,58 @@
 </pre></div></div></div>
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="../../search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
-    </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
-        </div>
-      </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="../../genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="../../py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li><a href="../../index.html">Caesium 0.2 documentation</a> &raquo;</li>
-          <li><a href="../index.html" >Module code</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
         &copy; Copyright 2014, Christopher D. Hunter.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
-    </div>
-  </body>
+    </p>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>

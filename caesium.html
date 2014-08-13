@@ -1,52 +1,100 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
-  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 
 
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-    
-    <title>caesium package &mdash; Caesium 0.2 documentation</title>
-    
-    <link rel="stylesheet" href="_static/default.css" type="text/css" />
-    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-    
-    <script type="text/javascript">
-      var DOCUMENTATION_OPTIONS = {
-        URL_ROOT:    './',
-        VERSION:     '0.2',
-        COLLAPSE_INDEX: false,
-        FILE_SUFFIX: '.html',
-        HAS_SOURCE:  true
-      };
-    </script>
-    <script type="text/javascript" src="_static/jquery.js"></script>
-    <script type="text/javascript" src="_static/underscore.js"></script>
-    <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Caesium 0.2 documentation" href="index.html" />
-    <link rel="prev" title="Welcome to Caesium’s documentation!" href="index.html" /> 
-  </head>
-  <body>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             accesskey="I">index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="Welcome to Caesium’s documentation!"
-             accesskey="P">previous</a> |</li>
-        <li><a href="index.html">Caesium 0.2 documentation</a> &raquo;</li> 
-      </ul>
-    </div>  
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>caesium package &mdash; Caesium 0.2 documentation</title>
+  
 
-    <div class="document">
-      <div class="documentwrapper">
-        <div class="bodywrapper">
-          <div class="body">
+  
+  
+
+  
+  <link href='https://fonts.googleapis.com/css?family=Lato:400,700|Roboto+Slab:400,700|Inconsolata:400,700' rel='stylesheet' type='text/css'>
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+    <link rel="top" title="Caesium 0.2 documentation" href="index.html"/>
+        <link rel="prev" title="Welcome to Caesium’s documentation!" href="index.html"/> 
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.6.2/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-nav-search">
+        <a href="index.html" class="fa fa-home"> Caesium</a>
+        <div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+        
+        
+            <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="">caesium package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#module-caesium.document">caesium.document module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-caesium.handler">caesium.handler module</a></li>
+</ul>
+</li>
+</ul>
+
+        
+      </div>
+      &nbsp;
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="index.html">Caesium</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="index.html">Docs</a> &raquo;</li>
+      
+    <li>caesium package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          <a href="_sources/caesium.txt" rel="nofollow"> View page source</a>
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main">
             
   <div class="section" id="caesium-package">
 <h1>caesium package<a class="headerlink" href="#caesium-package" title="Permalink to this headline">¶</a></h1>
@@ -311,60 +359,147 @@ revisions applied between it and the current state</p>
 <dt id="caesium.handler.BaseHandler">
 <em class="property">class </em><tt class="descclassname">caesium.handler.</tt><tt class="descname">BaseHandler</tt><big>(</big><em>application</em>, <em>request</em>, <em>**kwargs</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">tornado.web.RequestHandler</span></tt></p>
-<p>A class to collect common handler methods 
-* all other handlers should subclass this across apps.</p>
+<p>A class to collect common handler methods that can be useful in your individual implementation,
+this includes functions for working with query strings and Motor/Mongo type documents</p>
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.arg_as_array">
-<tt class="descname">arg_as_array</tt><big>(</big><em>arg</em>, <em>splitChar='|'</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.arg_as_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.arg_as_array" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">arg_as_array</tt><big>(</big><em>arg</em>, <em>split_char='|'</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.arg_as_array"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.arg_as_array" title="Permalink to this definition">¶</a></dt>
 <dd><p>Turns an argument into an array, split by the splitChar</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arg</strong> (<em>str</em>) &#8211; The name of the query param you want to turn into an array based on the value</li>
+<li><strong>split_char</strong> (<em>str</em>) &#8211; The character the value should be split on.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list of values</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.get_arg_value_as_type">
 <tt class="descname">get_arg_value_as_type</tt><big>(</big><em>key</em>, <em>default=None</em>, <em>convert_int=False</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_arg_value_as_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_arg_value_as_type" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Allow users to pass through truthy type values like true, yes, no and get to a typed variable in your code</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>val</strong> (<em>str</em>) &#8211; The string reprensentation of the value you want to convert</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">adapted value</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dynamic</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.get_current_user">
 <tt class="descname">get_current_user</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_current_user"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_current_user" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Gets the current user from the secure cookie store</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">user name for logged in user</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">str</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.get_dict_of_all_args">
 <tt class="descname">get_dict_of_all_args</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_dict_of_all_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_dict_of_all_args" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a dictionary from a handler paths query string and returns it</p>
-<p>returns Dictionary</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Returns:</th><td class="field-body">Dictionary of all key/values in arguments list</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
-
-<dl class="method">
-<dt id="caesium.handler.BaseHandler.get_dict_of_args">
-<tt class="descname">get_dict_of_args</tt><big>(</big><em>argList</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_dict_of_args"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_dict_of_args" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.get_json_argument">
 <tt class="descname">get_json_argument</tt><big>(</big><em>name</em>, <em>default=None</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_json_argument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_json_argument" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find and return the argument with key &#8216;name&#8217;
 from JSON request data. Similar to Tornado&#8217;s get_argument() method.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>name</strong> (<em>str</em>) &#8211; The name of the json key you want to get the value for</li>
+<li><strong>default</strong> (<em>bool</em>) &#8211; The default value if nothing is found</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">value of the argument name request</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.get_mongo_query_from_arguments">
 <tt class="descname">get_mongo_query_from_arguments</tt><big>(</big><em>reserved_attributes=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.get_mongo_query_from_arguments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.get_mongo_query_from_arguments" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate a mongo query from the given URL query parameters,
-handles OR query via multiples
-&#64;return: dictionary</p>
+<dd><p>Generate a mongo query from the given URL query parameters, handles OR query via multiples</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>reserved_attributes</strong> (<em>list</em>) &#8211; A list of attributes you want to exclude from this particular query</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.group_objects_by">
 <tt class="descname">group_objects_by</tt><big>(</big><em>list</em>, <em>attr</em>, <em>valueLabel='value'</em>, <em>childrenLabel='children'</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.group_objects_by"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.group_objects_by" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates a group object based on the attribute value on of the given attr value that is passed in.</p>
-<p>&#64;param list: A list of dictionary objects
-&#64;param attr: The attribute that the dictionaries should be sorted upon
-&#64;param valueLabel: What to call the key of the field we&#8217;re sorting upon
-&#64;param childrenLabel: What to call the list of child objects on the group object
-&#64;return:</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>list</strong> (<em>list</em>) &#8211; A list of dictionary objects</li>
+<li><strong>attr</strong> (<em>str</em>) &#8211; The attribute that the dictionaries should be sorted upon</li>
+<li><strong>valueLabel</strong> (<em>str</em>) &#8211; What to call the key of the field we&#8217;re sorting upon</li>
+<li><strong>childrenLabel</strong> (<em>str</em>) &#8211; What to call the list of child objects on the group object</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">list of grouped objects by a given attribute</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
@@ -375,13 +510,26 @@ handles OR query via multiples
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.json_obj_to_cursor">
 <tt class="descname">json_obj_to_cursor</tt><big>(</big><em>json</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.json_obj_to_cursor"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.json_obj_to_cursor" title="Permalink to this definition">¶</a></dt>
-<dd><p>Converts a JSON object to a mongo db cursor</p>
+<dd><p>(Deprecated) Converts a JSON object to a mongo db cursor</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>json</strong> (<em>str</em>) &#8211; A json string</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body">dictionary with ObjectId type</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.list_cursor_to_json">
 <tt class="descname">list_cursor_to_json</tt><big>(</big><em>cursor</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.list_cursor_to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.list_cursor_to_json" title="Permalink to this definition">¶</a></dt>
-<dd><p>Convenience method for converting a mongokit or pymongo list cursor into a JSON object for return</p>
+<dd><p>Convenience method for converting a mongokit or pymongo list cursor into a JSON object for return
+:param Cursor cursor: A motor client database cursor</p>
 </dd></dl>
 
 <dl class="method">
@@ -390,45 +538,103 @@ handles OR query via multiples
 <dd><p>Load JSON from the request body and store them in
 self.request.arguments, like Tornado does by default for POSTed form
 parameters.</p>
-<p>If JSON cannot be decoded, raises an HTTPError with status 400.</p>
+<p>If JSON cannot be decoded</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name" colspan="2">Raises ValueError:</th></tr>
+<tr class="field-odd field"><td>&nbsp;</td><td class="field-body">JSON Could not be decoded</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.obj_cursor_to_json">
 <tt class="descname">obj_cursor_to_json</tt><big>(</big><em>cursor</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.obj_cursor_to_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.obj_cursor_to_json" title="Permalink to this definition">¶</a></dt>
 <dd><p>Handle conversion of pymongo cursor into a JSON object formatted for UI consumption</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>cursor</strong> (<em>Cursor</em>) &#8211; A motor client database cursor</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.raise_error">
 <tt class="descname">raise_error</tt><big>(</big><em>status=500</em>, <em>message='Generic server error.  Out of luck...'</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.raise_error"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.raise_error" title="Permalink to this definition">¶</a></dt>
-<dd><p>Sets an error status and returns a message to the user in JSON format
-&#64;param status:
-&#64;param message:</p>
+<dd><p>Sets an error status and returns a message to the user in JSON format</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>status</strong> (<em>int</em>) &#8211; The status code to use</li>
+<li><strong>message</strong> (<em>str</em>) &#8211; The message to return in the JSON response</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.return_resource">
 <tt class="descname">return_resource</tt><big>(</big><em>resource</em>, <em>status=200</em>, <em>statusMessage='OK'</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.return_resource"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.return_resource" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="method">
-<dt id="caesium.handler.BaseHandler.set_arg_value_to_type">
-<tt class="descname">set_arg_value_to_type</tt><big>(</big><em>val</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.set_arg_value_to_type"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.set_arg_value_to_type" title="Permalink to this definition">¶</a></dt>
-<dd><p>Allow users to pass through truthy type values like true, yes, no and get to a typed variable in your code</p>
-<p>returns</p>
+<dd><p>Return a resource response</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>resource</strong> (<em>str</em>) &#8211; The JSON String representation of a resource response</li>
+<li><strong>status</strong> (<em>int</em>) &#8211; Status code to use</li>
+<li><strong>statusMessage</strong> (<em>str</em>) &#8211; The message to use in the error response</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.unauthorized">
-<tt class="descname">unauthorized</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.unauthorized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.unauthorized" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">unauthorized</tt><big>(</big><em>message='Unauthorized request</em>, <em>please login first'</em><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.unauthorized"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.unauthorized" title="Permalink to this definition">¶</a></dt>
 <dd><p>Standard Unauthorized response</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>message</strong> (<em>str</em>) &#8211; The Message to use in the error response</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="method">
 <dt id="caesium.handler.BaseHandler.write_hyper_response">
 <tt class="descname">write_hyper_response</tt><big>(</big><em>links=</em>, <span class="optional">[</span><span class="optional">]</span><em>meta={}</em>, <em>entity_name=None</em>, <em>entity=None</em>, <em>notifications=</em>, <span class="optional">[</span><span class="optional">]</span><em>actions=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseHandler.write_hyper_response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseHandler.write_hyper_response" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes a hyper media response object</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>links</strong> (<em>list</em>) &#8211; A list of links to the resources</li>
+<li><strong>meta</strong> (<em>dict</em>) &#8211; The meta data for this response</li>
+<li><strong>entity_name</strong> (<em>str</em>) &#8211; The entity name</li>
+<li><strong>entity</strong> (<em>object</em>) &#8211; The Entity itself</li>
+<li><strong>notifications</strong> (<em>list</em>) &#8211; List of notifications</li>
+<li><strong>actions</strong> (<em>list</em>) &#8211; List of actions</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 </dd></dl>
@@ -482,7 +688,7 @@ how to handle document revision scheduling.</p>
 <dl class="method">
 <dt id="caesium.handler.BaseRestfulMotorHandler.initialize">
 <tt class="descname">initialize</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/caesium/handler.html#BaseRestfulMotorHandler.initialize"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#caesium.handler.BaseRestfulMotorHandler.initialize" title="Permalink to this definition">¶</a></dt>
-<dd><p>Initializer for the app config handler</p>
+<dd><p>Initialize the base handler</p>
 </dd></dl>
 
 <dl class="method">
@@ -566,62 +772,65 @@ how to handle document revision scheduling.</p>
 
 
           </div>
-        </div>
-      </div>
-      <div class="sphinxsidebar">
-        <div class="sphinxsidebarwrapper">
-  <h3><a href="index.html">Table Of Contents</a></h3>
-  <ul>
-<li><a class="reference internal" href="#">caesium package</a><ul>
-<li><a class="reference internal" href="#module-caesium.document">caesium.document module</a></li>
-<li><a class="reference internal" href="#module-caesium.handler">caesium.handler module</a></li>
-</ul>
-</li>
-</ul>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="Welcome to Caesium’s documentation!"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
 
-  <h4>Previous topic</h4>
-  <p class="topless"><a href="index.html"
-                        title="previous chapter">Welcome to Caesium&#8217;s documentation!</a></p>
-  <h3>This Page</h3>
-  <ul class="this-page-menu">
-    <li><a href="_sources/caesium.txt"
-           rel="nofollow">Show Source</a></li>
-  </ul>
-<div id="searchbox" style="display: none">
-  <h3>Quick search</h3>
-    <form class="search" action="search.html" method="get">
-      <input type="text" name="q" />
-      <input type="submit" value="Go" />
-      <input type="hidden" name="check_keywords" value="yes" />
-      <input type="hidden" name="area" value="default" />
-    </form>
-    <p class="searchtip" style="font-size: 90%">
-    Enter search terms or a module, class or function name.
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2014, Christopher D. Hunter.
     </p>
-</div>
-<script type="text/javascript">$('#searchbox').show(0);</script>
+  </div>
+
+  <a href="https://github.com/snide/sphinx_rtd_theme">Sphinx theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>
+</footer>
         </div>
       </div>
-      <div class="clearer"></div>
-    </div>
-    <div class="related">
-      <h3>Navigation</h3>
-      <ul>
-        <li class="right" style="margin-right: 10px">
-          <a href="genindex.html" title="General Index"
-             >index</a></li>
-        <li class="right" >
-          <a href="py-modindex.html" title="Python Module Index"
-             >modules</a> |</li>
-        <li class="right" >
-          <a href="index.html" title="Welcome to Caesium’s documentation!"
-             >previous</a> |</li>
-        <li><a href="index.html">Caesium 0.2 documentation</a> &raquo;</li> 
-      </ul>
-    </div>
-    <div class="footer">
-        &copy; Copyright 2014, Christopher D. Hunter.
-      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
-    </div>
-  </body>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
 </html>
