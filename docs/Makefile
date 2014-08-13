@@ -6,7 +6,7 @@ SPHINXOPTS    =
 SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = build
-GH_PAGES_SOURCES = docs/source caesium Makefile
+GH_PAGES_SOURCES = docs caesium
 
 # User-friendly check for sphinx-build
 ifeq ($(shell which $(SPHINXBUILD) >/dev/null 2>&1; echo $$?), 1)
@@ -51,8 +51,10 @@ help:
 gh-pages:
 	git checkout gh-pages
 	rm -rf build _sources _static
+	cd ..
 	git checkout master $(GH_PAGES_SOURCES)
 	git reset HEAD
+	cd docs
 	make html
 	mv -fv build/html/* ./
 	rm -rf $(GH_PAGES_SOURCES) build
