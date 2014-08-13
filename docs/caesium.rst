@@ -1,17 +1,6 @@
 caesium package
 ===============
 
-Submodules
-----------
-
-caesium.base_motor_handler module
----------------------------------
-
-.. automodule:: caesium.base_motor_handler
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 caesium.document module
 -----------------------
 
@@ -28,11 +17,3 @@ caesium.handler module
     :undoc-members:
     :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: caesium
-    :members:
-    :undoc-members:
-    :show-inheritance:
