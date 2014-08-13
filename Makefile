@@ -50,7 +50,7 @@ help:
 
 gh-pages:
 	git checkout gh-pages
-	rm -rf build _sources _static _modules *.html *.inv *.js
+	rm -rf build _sources _static _modules *.html *.inv *.js docs
 	git checkout master $(GH_PAGES_SOURCES)
 	git reset HEAD
 	make html
