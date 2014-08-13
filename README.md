@@ -2,7 +2,7 @@
 
 Caesium is a restful resrouce framework with a focus on document scheduling.  Proudly built on top of MongoDB, Tornado, and Motor frameworks.  
 
-##[API Documentation](http://urbn.github.com/caesium)
+##[API Documentation](http://urbn.github.io/Caesium)
 ##[CaesiumQuickstart](http://github.com/urbn/CaesiumQuickstart)
 
 ##Compatibility
