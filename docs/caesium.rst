@@ -17,11 +17,3 @@ caesium.handler module
     :undoc-members:
     :show-inheritance:
 
-
-Module contents
----------------
-
-.. automodule:: caesium
-    :members:
-    :undoc-members:
-    :show-inheritance:
