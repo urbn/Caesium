@@ -59,7 +59,7 @@ class AsyncRevisionStackManager(object):
     def __get_pending_revisions(self):
         dttime = time.mktime(datetime.datetime.now().timetuple())
         changes = yield self.revisions.find({
-            "ttl" : {
+            "toa" : {
                 "$lt" : dttime,
             },
             "processed": False,
@@ -103,9 +103,9 @@ class AsyncSchedulableDocumentRevisionStack(object):
     SCHEMA = {
         "title":"Schedulable Revision Document",
         "type": "object",
-        "required": ["ttl", "processed", "collection", "master_id", "action", "patch"],
+        "required": ["toa", "processed", "collection", "master_id", "action", "patch"],
         "properties" : {
-            "ttl" : {
+            "toa" : {
                 "type": "number",
             },
             "processed": {
@@ -269,18 +269,18 @@ class AsyncSchedulableDocumentRevisionStack(object):
         return new_patch
 
     @coroutine
-    def push(self, patch, ttl=None, meta={}):
+    def push(self, patch, toa=None, meta={}):
         """Push a change on to the revision stack for this object
         :param dict patch: None Denotes Delete
-        :param int ttl:
+        :param int toa:
         :param bool delete:
         """
 
-        if not ttl:
-            ttl = time.mktime(datetime.datetime.now().timetuple())
+        if not toa:
+            toa = time.mktime(datetime.datetime.now().timetuple())
 
-        if not isinstance(ttl, int):
-            ttl = int(ttl)
+        if not isinstance(toa, int):
+            toa = int(toa)
 
         #Documents should be stored in bson formats
         if isinstance(patch, dict):
@@ -293,7 +293,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
         elif self.master_id and isinstance(patch, dict):
             action = self.UPDATE_ACTION
             patch = self.__make_patch_storeable(patch)
-            yield self._lazy_migration(meta=copy.deepcopy(meta), ttl=ttl-1)
+            yield self._lazy_migration(meta=copy.deepcopy(meta), toa=toa-1)
 
         elif not self.master_id and isinstance(patch, dict):
             #Scheduled inserts will not have an object ID and one should be generated
@@ -309,7 +309,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
             del patch["_id"]
 
         change = {
-            "ttl": ttl,
+            "toa": toa,
             "processed": False,
             "collection": self.collection_name,
             "master_id": self.master_id,
@@ -325,21 +325,21 @@ class AsyncSchedulableDocumentRevisionStack(object):
         raise Return(id)
 
     @coroutine
-    def list(self, ttl=None, show_history=False):
+    def list(self, toa=None, show_history=False):
         """Return all revisions
         :param show_history: 
         """
-        if not ttl:
-            ttl = time.mktime(datetime.datetime.now().timetuple())
+        if not toa:
+            toa = time.mktime(datetime.datetime.now().timetuple())
 
         query = {
             "$query": {
                 "master_id": self.master_id,
                 "processed": show_history,
-                "ttl" : {"$lte" : ttl}
+                "toa" : {"$lte" : toa}
             },
             "$orderby": {
-                "ttl": 1
+                "toa": 1
             }
         }
 
@@ -349,7 +349,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
 
 
     @coroutine
-    def _lazy_migration(self, patch=None, meta=None, ttl=None):
+    def _lazy_migration(self, patch=None, meta=None, toa=None):
 
         objects = yield self.revisions.find({"master_id": self.master_id}, limit=1)
 
@@ -359,8 +359,8 @@ class AsyncSchedulableDocumentRevisionStack(object):
         if not patch:
             patch = yield self.collection.find_one_by_id(self.master_id)
 
-        if not ttl:
-             ttl = long(time.mktime(datetime.datetime.now().timetuple()))
+        if not toa:
+             toa = long(time.mktime(datetime.datetime.now().timetuple()))
 
         meta["comment"] = "This document was migrated automatically."
 
@@ -378,7 +378,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
         #If no objects are returned, this is some legacy object that needs a first revision
         #Create it here
         legacy_revision = {
-            "ttl": ttl,
+            "toa": toa,
             "processed": True,
             "collection": self.collection_name,
             "master_id": self.master_id,
@@ -430,7 +430,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
 
         if action in [self.INSERT_ACTION, self.UPDATE_ACTION]:
 
-            revisions = yield self.list(ttl=target_revision.get("ttl"))
+            revisions = yield self.list(toa=target_revision.get("toa"))
 
             if len(revisions) == 0:
                 raise NoRevisionsAvailable()
@@ -502,7 +502,7 @@ class BaseAsyncMotorDocument(object):
         self.schema = schema
 
     @coroutine
-    def insert(self, dct, ttl=None, comment=""):
+    def insert(self, dct, toa=None, comment=""):
         """Create a docume  nt
         :param dct:
         :rtype str:
@@ -513,7 +513,7 @@ class BaseAsyncMotorDocument(object):
 
         if self.scheduleable:
             stack = AsyncSchedulableDocumentRevisionStack(self.collection_name)
-            revision_id = yield stack.push(dct, ttl, comment=comment)
+            revision_id = yield stack.push(dct, toa, comment=comment)
             raise Return(revision_id)
 
         bson_obj = yield self.collection.insert(dct)
@@ -524,12 +524,12 @@ class BaseAsyncMotorDocument(object):
     def upsert(self, _id, dct, attribute="_id"):
         """Update or Insert a new document"""
 
-        mongo_response = yield self.update(_id, dct, upsert=True, attribute=attribute, ttl=None)
+        mongo_response = yield self.update(_id, dct, upsert=True, attribute=attribute, toa=None)
 
         raise Return(mongo_response)
 
     @coroutine
-    def update(self, update_by_value, dct, upsert=False, attribute="_id", ttl=None, comment=""):
+    def update(self, update_by_value, dct, upsert=False, attribute="_id", toa=None, comment=""):
 
         """Update an existing document"""
         if self.schema:
@@ -537,7 +537,7 @@ class BaseAsyncMotorDocument(object):
 
         if self.scheduleable:
             stack = AsyncSchedulableDocumentRevisionStack(self.collection_name, master_id=update_by_value)
-            revision_id = yield stack.push(dct, ttl, comment=comment)
+            revision_id = yield stack.push(dct, toa, comment=comment)
             raise Return(revision_id)
 
         if attribute=="_id" and not isinstance(update_by_value, ObjectId):
@@ -554,7 +554,7 @@ class BaseAsyncMotorDocument(object):
 
 
     @coroutine
-    def patch(self, predicate_value, attrs, predicate_attribute="_id", ttl=None):
+    def patch(self, predicate_value, attrs, predicate_attribute="_id", toa=None):
         """Update an existing document"""
 
         if predicate_attribute=="_id" and not isinstance(predicate_value, ObjectId):
@@ -574,11 +574,12 @@ class BaseAsyncMotorDocument(object):
         raise Return(self._obj_cursor_to_dictionary(mongo_response))
 
     @coroutine
-    def delete(self, _id, ttl=None, comment=""):
-        
+    def delete(self, _id, toa=None, comment=""):
+        """Delete a document or create a DELETE revision"""
+
         if self.scheduleable:
             stack = AsyncSchedulableDocumentRevisionStack(self.collection_name, master_id=_id)
-            revision_id = yield stack.push(None, ttl=ttl, delete=True, comment=comment)
+            revision_id = yield stack.push(None, toa=toa, delete=True, comment=comment)
             raise Return(revision_id)
 
         mongo_response = yield self.collection.remove({"_id": ObjectId(_id)})

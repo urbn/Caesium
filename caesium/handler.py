@@ -304,7 +304,7 @@ class BaseRestfulMotorHandler(BaseHandler):
             #Async update flow
             object = json_util.loads(self.request.body)
 
-            ttl = self.request.headers.get("ttl", None)
+            toa = self.request.headers.get("Caesium-TOA", None)
 
             obj_check = yield self.client.find_one_by_id(id)
             if not obj_check:
@@ -312,13 +312,13 @@ class BaseRestfulMotorHandler(BaseHandler):
                 self.finish()
                 return
 
-            if ttl:
+            if toa:
 
                 stack = AsyncSchedulableDocumentRevisionStack(self.client.collection_name, self.settings, master_id=id)
-                revision_id = yield stack.push(object, int(ttl), meta=self._get_meta_data())
+                revision_id = yield stack.push(object, int(toa), meta=self._get_meta_data())
 
                 if isinstance(revision_id, str):
-                    self.set_header("Ttl", ttl)
+                    self.set_header("Caesium-TOA", toa)
 
                     #We add the id of the original request, because we don't want to infer this
                     #On the client side, as the state of the client code could change easily
@@ -364,17 +364,17 @@ class BaseRestfulMotorHandler(BaseHandler):
 
             #assert not hasattr(base_object, "_id")
 
-            ttl = self.request.headers.get("ttl", None)
+            toa = self.request.headers.get("Caesium-TOA", None)
 
-            if ttl:
+            if toa:
                 # Async create flow
                 stack = AsyncSchedulableDocumentRevisionStack(self.client.collection_name, self.settings)
 
-                revision_id = yield stack.push(base_object, ttl=int(ttl), meta=self._get_meta_data())
+                revision_id = yield stack.push(base_object, toa=int(toa), meta=self._get_meta_data())
                 resource = yield stack.preview(revision_id)
 
                 if isinstance(revision_id, str):
-                    self.set_header("Ttl", ttl)
+                    self.set_header("Caesium-TOA", toa)
                     self.return_resource(resource.get("snapshot"))
                 else:
                     self.raise_error(404, "Revision not scheduled for object: %s" % id)
@@ -451,7 +451,7 @@ class BaseRevisionList(BaseRestfulMotorHandler):
 
         objects = yield self.client.find({"master_id": master_id,
                                      "processed": False},
-                                    orderby="ttl",
+                                    orderby="toa",
                                     order_by_direction=1,
                                     page=0,
                                     limit=20)
@@ -466,14 +466,14 @@ class BaseRevisionList(BaseRestfulMotorHandler):
 
         if show_history:
             objects_processed = yield self.client.find({"master_id": master_id, "processed": True},
-                                                  orderby="ttl",
+                                                  orderby="toa",
                                                   order_by_direction=-1,
                                                   page=0,
                                                   limit=limit)
 
         elif add_current_revision:
             objects_processed = yield self.client.find({"master_id": master_id, "processed": True},
-                                                  orderby="ttl",
+                                                  orderby="toa",
                                                   order_by_direction=-1,
                                                   page=0,
                                                   limit=1)
@@ -576,12 +576,13 @@ class BaseBulkScheduleableUpdateHandler(BaseHandler):
 
     @coroutine
     def put(self, id=None):
-        """Update many objects with a single ttl"""
+        """Update many objects with a single toa"""
 
-        ttl = self.request.headers.get("ttl")
-        if not ttl:
-            self.raise_error(400, "Ttl header is required, none found")
-            self.finish(self.request.headers.get("ttl"))
+        toa = self.request.headers.get("Caesium-TOA")
+
+        if not toa:
+            self.raise_error(400, "Caesium-TOA header is required, none found")
+            self.finish(self.request.headers.get("Caesium-TOA"))
 
         meta = self._get_meta_data()
         meta["bulk_id"] = uuid.uuid4().get_hex()
@@ -591,13 +592,13 @@ class BaseBulkScheduleableUpdateHandler(BaseHandler):
         self.get_json_argument("ids", [])
         for id in ids:
             stack = AsyncSchedulableDocumentRevisionStack(self.client.collection_name, self.settings, master_id=id)
-            stack.push(patch, ttl=ttl, meta=meta)
+            stack.push(patch, toa=toa, meta=meta)
 
         self.write({
             "count": len(ids),
             "result": {
                 "ids" : ids,
-                "ttl" : ttl,
+                "toa" : toa,
                 "patch": patch
             }
         })
@@ -605,7 +606,7 @@ class BaseBulkScheduleableUpdateHandler(BaseHandler):
 
     @coroutine
     def delete(self, bulk_id):
-        """Update many objects with a single ttl"""
+        """Update many objects with a single toa"""
 
         collection_name = self.request.headers.get("collection")
 
