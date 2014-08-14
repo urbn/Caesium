@@ -3,6 +3,7 @@ __author__ = 'hunt3r'
 """
 A base handlers module
 """
+
 import json
 import tornado.web
 from bson.objectid import ObjectId
@@ -362,7 +363,7 @@ class BaseRestfulMotorHandler(BaseHandler):
                     self.raise_error(404, "Resource not found: %s" % id)
 
         except ValidationError, vex:
-            self.logger.error("Object validation error", vex)
+            self.logger.error("%s validation error" % self.object_name, vex)
             self.raise_error(400, "Your %s cannot be updated because it is missing required fields, see docs" % self.object_name)
         except ValueError, ex:
             self.raise_error(400, "Invalid JSON Body, check formatting. %s" % ex[0])
@@ -412,8 +413,8 @@ class BaseRestfulMotorHandler(BaseHandler):
                 self.return_resource(base_object)
 
         except ValidationError, vex:
-            self.logger.error("Store validation error", vex)
-            self.raise_error(400, "Your %s cannot be updated because it is missing required fields, see docs" % self.object_name)
+            self.logger.error("%s validation error" % self.object_name, vex)
+            self.raise_error(400, "Your %s cannot be created because it is missing required fields, see docs" % self.object_name)
         except ValueError, ex:
             self.raise_error(400, "Invalid JSON Body, check formatting. %s" % ex[0])
         except Exception, ex:
