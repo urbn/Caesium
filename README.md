@@ -9,6 +9,14 @@ Caesium is a restful resrouce framework with a focus on document scheduling.  Pr
 
 Currently it works on python 2.7 only, but 3.3 will be supported soon.
 
+##Installation
+
+Installation is handled the normal way and brings all required dependencies as well.
+
+```
+pip install caesium
+```
+
 ##Build Status
 
 ![Travis Build](https://travis-ci.org/urbn/Caesium.svg?branch=master)

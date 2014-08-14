@@ -13,6 +13,13 @@ Contents:
 
    caesium
 
+Installation
+============
+
+To install via pip::
+
+    pip install caesium
+
 Example Application
 ===================
 
