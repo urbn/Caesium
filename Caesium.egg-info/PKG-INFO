@@ -1,0 +1,11 @@
+Metadata-Version: 1.0
+Name: Caesium
+Version: 0.3
+Summary: Caesium document revision and RESTful tools.
+Home-page: http://urbn.github.io/Caesium
+Author: Chris Hunter
+Author-email: hunter.christopher@gmail.com
+License: http://www.apache.org/licenses/LICENSE-2.0
+Description: UNKNOWN
+Keywords: mongo,mongodb,pymongo,gridfs,bson,motor,tornado,motor,patch,revision,scheduler,REST,RESTful
+Platform: UNKNOWN
