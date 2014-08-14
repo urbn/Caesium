@@ -123,8 +123,8 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">settings</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor</span>
-<span class="sd">        :attr dictionary collection: The collection you want revision documents on</span>
-<span class="sd">        :attr string master_id: The id of the master within the collection</span>
+
+<span class="sd">        :param dict settings: The applications settings, typically it is self.settings in a handler</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
@@ -133,6 +133,10 @@
 
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="AsyncRevisionStackManager.publish"><a class="viewcode-back" href="../../caesium.html#caesium.document.AsyncRevisionStackManager.publish">[docs]</a>    <span class="k">def</span> <span class="nf">publish</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Iterate over the scheduler collections and apply any actions found</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="k">try</span><span class="p">:</span>
              <span class="k">for</span> <span class="n">collection</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;scheduler&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collections&quot;</span><span class="p">):</span>
                 <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">publish_for_collection</span><span class="p">(</span><span class="n">collection</span><span class="p">)</span>
@@ -141,6 +145,12 @@
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="AsyncRevisionStackManager.set_all_revisions_to_in_process"><a class="viewcode-back" href="../../caesium.html#caesium.document.AsyncRevisionStackManager.set_all_revisions_to_in_process">[docs]</a>    <span class="k">def</span> <span class="nf">set_all_revisions_to_in_process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ids</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Set all revisions found to in process, so that other threads will not pick them up.</span>
+
+<span class="sd">        :param list ids:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">predicate</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s">&quot;_id&quot;</span> <span class="p">:</span> <span class="p">{</span>
                 <span class="s">&quot;$in&quot;</span> <span class="p">:</span> <span class="p">[</span> <span class="n">ObjectId</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span> <span class="k">for</span> <span class="nb">id</span> <span class="ow">in</span> <span class="n">ids</span> <span class="p">]</span>
@@ -149,13 +159,18 @@
 
         <span class="nb">set</span> <span class="o">=</span> <span class="p">{</span><span class="s">&quot;$set&quot;</span><span class="p">:</span> <span class="p">{</span> <span class="s">&quot;inProcess&quot;</span><span class="p">:</span> <span class="bp">True</span> <span class="p">}}</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="n">predicate</span><span class="p">)</span>
-
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">predicate</span><span class="p">,</span> <span class="nb">set</span><span class="p">,</span> <span class="n">multi</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 
 </div>
     <span class="nd">@coroutine</span>
     <span class="k">def</span> <span class="nf">__get_pending_revisions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get all the pending revisions after the current time</span>
+
+<span class="sd">        :return: A list of revisions</span>
+<span class="sd">        :rtype: list</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">dttime</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
         <span class="n">changes</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">find</span><span class="p">({</span>
             <span class="s">&quot;toa&quot;</span> <span class="p">:</span> <span class="p">{</span>
@@ -171,7 +186,11 @@
 
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="AsyncRevisionStackManager.publish_for_collection"><a class="viewcode-back" href="../../caesium.html#caesium.document.AsyncRevisionStackManager.publish_for_collection">[docs]</a>    <span class="k">def</span> <span class="nf">publish_for_collection</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Run the publishing operations for a given collection</span>
 
+<span class="sd">        :param str collection_name:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span> <span class="o">=</span> <span class="n">BaseAsyncMotorDocument</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">_revisions&quot;</span> <span class="o">%</span> <span class="n">collection_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
 
         <span class="n">changes</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">__get_pending_revisions</span><span class="p">()</span>
@@ -240,8 +259,11 @@
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">collection_schema</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">master_id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor</span>
-<span class="sd">        :attr dictionary collection: The collection you want revision documents on</span>
-<span class="sd">        :attr string master_id: The id of the master within the collection</span>
+
+<span class="sd">        :param str collection: The collection you want revision documents on</span>
+<span class="sd">        :param dict settings: The application settings</span>
+<span class="sd">        :param dict collection_schema: This is a JSON Schema dictionary to describe the expected object for that type</span>
+<span class="sd">        :param str master_id: The Master ID for this set of revisions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">master_id</span><span class="o">=</span><span class="n">master_id</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
@@ -255,20 +277,11 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">previews</span> <span class="o">=</span> <span class="n">BaseAsyncMotorDocument</span><span class="p">(</span><span class="s">&quot;previews&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">settings</span><span class="p">)</span>
 
     <span class="nd">@coroutine</span>
-<div class="viewcode-block" id="AsyncSchedulableDocumentRevisionStack.search"><a class="viewcode-back" href="../../caesium.html#caesium.document.AsyncSchedulableDocumentRevisionStack.search">[docs]</a>    <span class="k">def</span> <span class="nf">search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">number</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;</span>
-
-<span class="sd">        Find a revision by either unique bson id or numeric revision within the stack</span>
-
-<span class="sd">        :arg id string: Bson object id as a string</span>
-<span class="sd">        :arg number int: The numerical version in the stack from oldest to newest</span>
-
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">pass</span>
-</div>
-    <span class="nd">@coroutine</span>
     <span class="k">def</span> <span class="nf">__update_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">revision</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update a master document and revision history document&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Update a master document and revision history document</span>
+
+<span class="sd">        :param dict revision: The revision dictionary</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">patch</span> <span class="o">=</span> <span class="n">revision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;patch&quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">patch</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;_id&quot;</span><span class="p">):</span>
@@ -281,6 +294,15 @@
 
     <span class="nd">@coroutine</span>
     <span class="k">def</span> <span class="nf">__insert_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">revision</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle the insert action type.</span>
+
+<span class="sd">        Creates new document to be created in this collection.</span>
+<span class="sd">        This allows you to stage a creation of an object</span>
+
+<span class="sd">        :param dict revision: The revision dictionary</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">revision</span><span class="p">[</span><span class="s">&quot;patch&quot;</span><span class="p">][</span><span class="s">&quot;_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">revision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;master_id&quot;</span><span class="p">))</span>
 
@@ -291,14 +313,23 @@
 
     <span class="nd">@coroutine</span>
     <span class="k">def</span> <span class="nf">__delete_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">revision</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle a delete action to a partiular master id via the revision.</span>
 
+<span class="sd">        :param dict revision:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">delete_response</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">revision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;master_id&quot;</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">delete_response</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;n&quot;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">DocumentRevisionDeleteFailed</span><span class="p">()</span>
 
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="AsyncSchedulableDocumentRevisionStack.pop"><a class="viewcode-back" href="../../caesium.html#caesium.document.AsyncSchedulableDocumentRevisionStack.pop">[docs]</a>    <span class="k">def</span> <span class="nf">pop</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Pop the top revision off the stack back onto the collection at the given id&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Pop the top revision off the stack back onto the collection at the given id. This method applies the action.</span>
+
+<span class="sd">        Note: This assumes you don&#39;t have two revisions scheduled closer than a single scheduling cycle.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">revisions</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">revisions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -344,7 +375,8 @@
 
             <span class="n">revision</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">find_one_by_id</span><span class="p">(</span><span class="n">revision</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">))</span>
 
-            <span class="c">#Notify any clients via websocket</span>
+            <span class="c">#TODO: Make this callback method something that can be passed in.  This was used in</span>
+            <span class="c">#the original implementation to send back to the client via websocket</span>
             <span class="c">#revision_success.send(&#39;revision_success&#39;, type=&quot;RevisionSuccess&quot;, data=revision)</span>
 
             <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="n">revision</span><span class="p">)</span>
@@ -352,7 +384,10 @@
         <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
 </div>
     <span class="k">def</span> <span class="nf">__make_patch_storeable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">patch</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Replace all dots with pipes&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Replace all dots with pipes in key names, mongo doesn&#39;t like to store keys with dots.</span>
+
+<span class="sd">        :param dict patch: The patch that needs to be made storeable and applied in the future</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">new_patch</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">patch</span><span class="p">:</span>
             <span class="n">new_patch</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;.&quot;</span><span class="p">,</span> <span class="s">&quot;|&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">patch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
@@ -360,7 +395,12 @@
         <span class="k">return</span> <span class="n">new_patch</span>
 
     <span class="k">def</span> <span class="nf">__make_storeable_patch_patchable</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">patch</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Replace all pipes with dots&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Replace all pipes with dots, transform back into the a namespace path.</span>
+<span class="sd">        This is done before the $set query is applied to the document</span>
+
+<span class="sd">        :param dict patch: The patch that is to be prepared to be applied</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">new_patch</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">patch</span><span class="p">:</span>
             <span class="n">new_patch</span><span class="p">[</span><span class="n">key</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;|&quot;</span><span class="p">,</span> <span class="s">&quot;.&quot;</span><span class="p">)]</span> <span class="o">=</span> <span class="n">patch</span><span class="p">[</span><span class="n">key</span><span class="p">]</span>
@@ -368,12 +408,17 @@
         <span class="k">return</span> <span class="n">new_patch</span>
 
     <span class="nd">@coroutine</span>
-<div class="viewcode-block" id="AsyncSchedulableDocumentRevisionStack.push"><a class="viewcode-back" href="../../caesium.html#caesium.document.AsyncSchedulableDocumentRevisionStack.push">[docs]</a>    <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">patch</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="p">{}):</span>
-        <span class="sd">&quot;&quot;&quot;Push a change on to the revision stack for this object</span>
+<div class="viewcode-block" id="AsyncSchedulableDocumentRevisionStack.push"><a class="viewcode-back" href="../../caesium.html#caesium.document.AsyncSchedulableDocumentRevisionStack.push">[docs]</a>    <span class="k">def</span> <span class="nf">push</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">patch</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Push a change on to the revision stack for this ObjectId.  Pushing onto the stack is how you</span>
+<span class="sd">        get revisions to be staged and scheduled for some future time.</span>
+
 <span class="sd">        :param dict patch: None Denotes Delete</span>
-<span class="sd">        :param int toa:</span>
-<span class="sd">        :param bool delete:</span>
+<span class="sd">        :param int toa: Time of action</span>
+<span class="sd">        :param dict meta: The meta data for this action</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">meta</span><span class="p">:</span>
+            <span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">toa</span><span class="p">:</span>
             <span class="n">toa</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
@@ -425,8 +470,10 @@
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="AsyncSchedulableDocumentRevisionStack.list"><a class="viewcode-back" href="../../caesium.html#caesium.document.AsyncSchedulableDocumentRevisionStack.list">[docs]</a>    <span class="k">def</span> <span class="nf">list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">show_history</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Return all revisions</span>
-<span class="sd">        :param show_history: </span>
+        <span class="sd">&quot;&quot;&quot;Return all revisions for this stack</span>
+
+<span class="sd">        :param int toa: The time of action as a UTC timestamp</span>
+<span class="sd">        :param bool show_history: Whether to show historical revisions</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">toa</span><span class="p">:</span>
             <span class="n">toa</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
@@ -449,7 +496,16 @@
 </div>
     <span class="nd">@coroutine</span>
     <span class="k">def</span> <span class="nf">_lazy_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">patch</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">meta</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Handle when a revision scheduling is turned onto a collection that was previously not scheduleable.</span>
+<span class="sd">        This method will create the first revision for each object before its every used in the context of scheduling.</span>
 
+<span class="sd">        :param dict patch: The patch that should be used</span>
+<span class="sd">        :param dict meta: Meta data for this action</span>
+<span class="sd">        :param int toa: The time of action</span>
+<span class="sd">        :return: A legacy revision for a document that was previously</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">objects</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">find</span><span class="p">({</span><span class="s">&quot;master_id&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">master_id</span><span class="p">},</span> <span class="n">limit</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">objects</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -495,18 +551,30 @@
 
     <span class="nd">@coroutine</span>
     <span class="k">def</span> <span class="nf">__create_preview_object_base</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dct</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        The starting point for a preview of a future object.</span>
+<span class="sd">        This is the object which will have future revisions iterated and applied to.</span>
+
+<span class="sd">        :param dict dct: The starting object dictionary</span>
+<span class="sd">        :return: The preview object id</span>
+<span class="sd">        :rtype: str</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">dct</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;_id&quot;</span><span class="p">):</span>
             <span class="k">del</span> <span class="n">dct</span><span class="p">[</span><span class="s">&quot;_id&quot;</span><span class="p">]</span>
 
         <span class="n">preview_object_id</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">previews</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span>
-<span class="c">#        preview_object = yield self.previews.find_one_by_id(preview_object_id)</span>
 
         <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="n">preview_object_id</span><span class="p">)</span>
 
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="AsyncSchedulableDocumentRevisionStack.preview"><a class="viewcode-back" href="../../caesium.html#caesium.document.AsyncSchedulableDocumentRevisionStack.preview">[docs]</a>    <span class="k">def</span> <span class="nf">preview</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">revision_id</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get an ephemeral preview of a revision with all</span>
-<span class="sd">        revisions applied between it and the current state&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Get an ephemeral preview of a revision with all revisions applied between it and the current state</span>
+
+<span class="sd">        :param str revision_id: The ID of the revision state you want to preview the master id at.</span>
+<span class="sd">        :return: A snapshot of a future state of the object</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">target_revision</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">revisions</span><span class="o">.</span><span class="n">find_one_by_id</span><span class="p">(</span><span class="n">revision_id</span><span class="p">)</span>
 
@@ -574,20 +642,30 @@
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="AsyncSchedulableDocumentRevisionStack.peek"><a class="viewcode-back" href="../../caesium.html#caesium.document.AsyncSchedulableDocumentRevisionStack.peek">[docs]</a>    <span class="k">def</span> <span class="nf">peek</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Return the top object on the stack for this ID</span>
-<span class="sd">        :rtype : object</span>
+
+<span class="sd">        :returns: The next revision</span>
+<span class="sd">        :rtype: dict</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">revisions</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">()</span>
         <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="n">revisions</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">revisions</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="bp">None</span><span class="p">)</span>
 
 </div></div>
 <div class="viewcode-block" id="BaseAsyncMotorDocument"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument">[docs]</a><span class="k">class</span> <span class="nc">BaseAsyncMotorDocument</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Concrete abstract class for a mongo collection and document interface&quot;&quot;&quot;</span>
+    <span class="sd">&quot;&quot;&quot;Concrete abstract class for a mongo collection and document interface</span>
+
+<span class="sd">    This class simplifies the use of the motor library, encoding/decoding special types, etc</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">collection_name</span><span class="p">,</span> <span class="n">settings</span><span class="p">,</span> <span class="n">schema</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">scheduleable</span><span class="o">=</span><span class="bp">False</span><span class="p">):</span>
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Constructor</span>
-<span class="sd">        :attr dictionary collection: The collection you wantto</span>
+
+<span class="sd">        :param str collection_name: The name of the collection you want to operate on</span>
+<span class="sd">        :param dict settings: The application settings</span>
+<span class="sd">        :param dict schema: A JSON Schema definition for this object type, used for validation</span>
+<span class="sd">        :param bool scheduleable: Whether or not this document is scheduleable</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">__name__</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">settings</span> <span class="o">=</span> <span class="n">settings</span>
@@ -602,18 +680,16 @@
 
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseAsyncMotorDocument.insert"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.insert">[docs]</a>    <span class="k">def</span> <span class="nf">insert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a docume  nt</span>
-<span class="sd">        :param dct:</span>
+        <span class="sd">&quot;&quot;&quot;Create a document</span>
+
+<span class="sd">        :param dict dct:</span>
+<span class="sd">        :param toa toa: Optional time of action, triggers this to be handled as a future insert action for a new document</span>
+<span class="sd">        :param str comment: A comment</span>
 <span class="sd">        :rtype str:</span>
 <span class="sd">        :returns string bson id:</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">:</span>
             <span class="n">jsonschema</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">dct</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
-
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduleable</span><span class="p">:</span>
-            <span class="n">stack</span> <span class="o">=</span> <span class="n">AsyncSchedulableDocumentRevisionStack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collection_name</span><span class="p">)</span>
-            <span class="n">revision_id</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">stack</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">dct</span><span class="p">,</span> <span class="n">toa</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="n">comment</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="n">revision_id</span><span class="p">)</span>
 
         <span class="n">bson_obj</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span>
 
@@ -621,28 +697,35 @@
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseAsyncMotorDocument.upsert"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.upsert">[docs]</a>    <span class="k">def</span> <span class="nf">upsert</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">attribute</span><span class="o">=</span><span class="s">&quot;_id&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update or Insert a new document&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Update or Insert a new document</span>
 
-        <span class="n">mongo_response</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_id</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">upsert</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">attribute</span><span class="o">=</span><span class="n">attribute</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="bp">None</span><span class="p">)</span>
+<span class="sd">        :param str _id: The document id</span>
+<span class="sd">        :param dict dct: The dictionary to set on the document</span>
+<span class="sd">        :param str attribute: The attribute to query for to find the object to set this data on</span>
+<span class="sd">        :returns: JSON Mongo client response including the &quot;n&quot; key to show number of objects effected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="n">mongo_response</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_id</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">upsert</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">attribute</span><span class="o">=</span><span class="n">attribute</span><span class="p">)</span>
 
         <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="n">mongo_response</span><span class="p">)</span>
 </div>
     <span class="nd">@coroutine</span>
-<div class="viewcode-block" id="BaseAsyncMotorDocument.update"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">update_by_value</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">upsert</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">attribute</span><span class="o">=</span><span class="s">&quot;_id&quot;</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
+<div class="viewcode-block" id="BaseAsyncMotorDocument.update"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.update">[docs]</a>    <span class="k">def</span> <span class="nf">update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicate_value</span><span class="p">,</span> <span class="n">dct</span><span class="p">,</span> <span class="n">upsert</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">attribute</span><span class="o">=</span><span class="s">&quot;_id&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update an existing document</span>
 
-        <span class="sd">&quot;&quot;&quot;Update an existing document&quot;&quot;&quot;</span>
+<span class="sd">        :param predicate_value: The value of the predicate</span>
+<span class="sd">        :param dict dct: The dictionary to update with</span>
+<span class="sd">        :param bool upsert: Whether this is an upsert action</span>
+<span class="sd">        :param str attribute: The attribute to query for to find the object to set this data ond</span>
+<span class="sd">        :returns: JSON Mongo client response including the &quot;n&quot; key to show number of objects effected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">:</span>
             <span class="n">jsonschema</span><span class="o">.</span><span class="n">validate</span><span class="p">(</span><span class="n">dct</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">schema</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduleable</span><span class="p">:</span>
-            <span class="n">stack</span> <span class="o">=</span> <span class="n">AsyncSchedulableDocumentRevisionStack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collection_name</span><span class="p">,</span> <span class="n">master_id</span><span class="o">=</span><span class="n">update_by_value</span><span class="p">)</span>
-            <span class="n">revision_id</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">stack</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="n">dct</span><span class="p">,</span> <span class="n">toa</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="n">comment</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="n">revision_id</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">attribute</span><span class="o">==</span><span class="s">&quot;_id&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">predicate_value</span><span class="p">,</span> <span class="n">ObjectId</span><span class="p">):</span>
+            <span class="n">predicate_value</span> <span class="o">=</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">predicate_value</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">attribute</span><span class="o">==</span><span class="s">&quot;_id&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">update_by_value</span><span class="p">,</span> <span class="n">ObjectId</span><span class="p">):</span>
-            <span class="n">update_by_value</span> <span class="o">=</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">update_by_value</span><span class="p">)</span>
-
-        <span class="n">predicate</span> <span class="o">=</span> <span class="p">{</span><span class="n">attribute</span><span class="p">:</span> <span class="n">update_by_value</span><span class="p">}</span>
+        <span class="n">predicate</span> <span class="o">=</span> <span class="p">{</span><span class="n">attribute</span><span class="p">:</span> <span class="n">predicate_value</span><span class="p">}</span>
 
 
         <span class="n">dct</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dictionary_to_cursor</span><span class="p">(</span><span class="n">dct</span><span class="p">)</span>
@@ -653,8 +736,14 @@
 
 </div>
     <span class="nd">@coroutine</span>
-<div class="viewcode-block" id="BaseAsyncMotorDocument.patch"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.patch">[docs]</a>    <span class="k">def</span> <span class="nf">patch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicate_value</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">predicate_attribute</span><span class="o">=</span><span class="s">&quot;_id&quot;</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update an existing document&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseAsyncMotorDocument.patch"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.patch">[docs]</a>    <span class="k">def</span> <span class="nf">patch</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">predicate_value</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">predicate_attribute</span><span class="o">=</span><span class="s">&quot;_id&quot;</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Update an existing document via a $set query, this will apply only these attributes.</span>
+
+<span class="sd">        :param predicate_value: The value of the predicate</span>
+<span class="sd">        :param dict attrs: The dictionary to apply to this object</span>
+<span class="sd">        :param str predicate_attribute: The attribute to query for to find the object to set this data ond</span>
+<span class="sd">        :returns: JSON Mongo client response including the &quot;n&quot; key to show number of objects effected</span>
+<span class="sd">        t&quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">predicate_attribute</span><span class="o">==</span><span class="s">&quot;_id&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">predicate_value</span><span class="p">,</span> <span class="n">ObjectId</span><span class="p">):</span>
             <span class="n">predicate_value</span> <span class="o">=</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">predicate_value</span><span class="p">)</span>
@@ -673,27 +762,38 @@
         <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj_cursor_to_dictionary</span><span class="p">(</span><span class="n">mongo_response</span><span class="p">))</span>
 </div>
     <span class="nd">@coroutine</span>
-<div class="viewcode-block" id="BaseAsyncMotorDocument.delete"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Delete a document or create a DELETE revision&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseAsyncMotorDocument.delete"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Delete a document or create a DELETE revision</span>
 
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">scheduleable</span><span class="p">:</span>
-            <span class="n">stack</span> <span class="o">=</span> <span class="n">AsyncSchedulableDocumentRevisionStack</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">collection_name</span><span class="p">,</span> <span class="n">master_id</span><span class="o">=</span><span class="n">_id</span><span class="p">)</span>
-            <span class="n">revision_id</span> <span class="o">=</span> <span class="k">yield</span> <span class="n">stack</span><span class="o">.</span><span class="n">push</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="n">toa</span><span class="o">=</span><span class="n">toa</span><span class="p">,</span> <span class="n">delete</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">comment</span><span class="o">=</span><span class="n">comment</span><span class="p">)</span>
-            <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="n">revision_id</span><span class="p">)</span>
-
+<span class="sd">        :param str _id: The ID of the document to be deleted</span>
+<span class="sd">        :returns: JSON Mongo client response including the &quot;n&quot; key to show number of objects effected</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">mongo_response</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">remove</span><span class="p">({</span><span class="s">&quot;_id&quot;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">_id</span><span class="p">)})</span>
 
         <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="n">mongo_response</span><span class="p">)</span>
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseAsyncMotorDocument.find_one"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.find_one">[docs]</a>    <span class="k">def</span> <span class="nf">find_one</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Find one wrapper with conversion to dictionary&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Find one wrapper with conversion to dictionary</span>
+
+<span class="sd">        :param dict query: A Mongo query</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">mongo_response</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">find_one</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
         <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj_cursor_to_dictionary</span><span class="p">(</span><span class="n">mongo_response</span><span class="p">))</span>
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseAsyncMotorDocument.find"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.find">[docs]</a>    <span class="k">def</span> <span class="nf">find</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">query</span><span class="p">,</span> <span class="n">orderby</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">order_by_direction</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Find a document by any criteria&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Find a document by any criteria</span>
+
+<span class="sd">        :param dict query: The query to perform</span>
+<span class="sd">        :param str orderby: The attribute to order results by</span>
+<span class="sd">        :param int order_by_direction: 1 or -1</span>
+<span class="sd">        :param int page: The page to return</span>
+<span class="sd">        :param int limit: Number of results per page</span>
+<span class="sd">        :returns: A list of results</span>
+<span class="sd">        :rtype: list</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
 
@@ -710,18 +810,41 @@
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseAsyncMotorDocument.find_one_by_id"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.find_one_by_id">[docs]</a>    <span class="k">def</span> <span class="nf">find_one_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Find a single document by id</span>
+
+<span class="sd">        :param str _id: BSON string repreentation of the Id</span>
+<span class="sd">        :return: a signle object</span>
+<span class="sd">        :rtype: dict</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">document</span> <span class="o">=</span> <span class="p">(</span><span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">find_one</span><span class="p">({</span><span class="s">&quot;_id&quot;</span><span class="p">:</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">_id</span><span class="p">)}))</span>
         <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_obj_cursor_to_dictionary</span><span class="p">(</span><span class="n">document</span><span class="p">))</span>
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseAsyncMotorDocument.create_index"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.create_index">[docs]</a>    <span class="k">def</span> <span class="nf">create_index</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">index</span><span class="p">,</span> <span class="n">index_type</span><span class="o">=</span><span class="n">GEO2D</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Create a geospatial 2d index on a given attribute&quot;&quot;&quot;</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Adding geospatial index to stores on attribute: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="n">index</span><span class="p">)</span>
+        <span class="sd">&quot;&quot;&quot;Create an index on a given attribute</span>
+
+<span class="sd">        :param str index: Attribute to set index on</span>
+<span class="sd">        :param str index_type: See PyMongo index types for further information, defaults to GEO2D index.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&quot;Adding </span><span class="si">%s</span><span class="s"> index to stores on attribute: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">index_type</span><span class="p">,</span> <span class="n">index</span><span class="p">))</span>
         <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">collection</span><span class="o">.</span><span class="n">create_index</span><span class="p">([(</span><span class="n">index</span><span class="p">,</span> <span class="n">index_type</span><span class="p">)])</span>
 </div>
     <span class="nd">@coroutine</span>
-<div class="viewcode-block" id="BaseAsyncMotorDocument.location_based_search"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.location_based_search">[docs]</a>    <span class="k">def</span> <span class="nf">location_based_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lng</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s">&quot;miles&quot;</span><span class="p">,</span> <span class="n">attributeMap</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">numPerPage</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Search based on location and other attribute filters&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="BaseAsyncMotorDocument.location_based_search"><a class="viewcode-back" href="../../caesium.html#caesium.document.BaseAsyncMotorDocument.location_based_search">[docs]</a>    <span class="k">def</span> <span class="nf">location_based_search</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lng</span><span class="p">,</span> <span class="n">lat</span><span class="p">,</span> <span class="n">distance</span><span class="p">,</span> <span class="n">unit</span><span class="o">=</span><span class="s">&quot;miles&quot;</span><span class="p">,</span> <span class="n">attribute_map</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="mi">50</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Search based on location and other attribute filters</span>
+
+<span class="sd">        :param long lng: Longitude parameter</span>
+<span class="sd">        :param long lat: Latitude parameter</span>
+<span class="sd">        :param int distance: The radius of the query</span>
+<span class="sd">        :param str unit: The unit of measure for the query, defaults to miles</span>
+<span class="sd">        :param dict attribute_map: Additional attributes to apply to the location bases query</span>
+<span class="sd">        :param int page: The page to return</span>
+<span class="sd">        :param int limit: Number of results per page</span>
+<span class="sd">        :returns: List of objects</span>
+<span class="sd">        :rtype: list</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="c">#Determine what type of radian conversion you want base on a unit of measure</span>
         <span class="k">if</span> <span class="n">unit</span> <span class="o">==</span> <span class="s">&quot;miles&quot;</span><span class="p">:</span>
@@ -738,14 +861,20 @@
         <span class="p">}</span>
 
         <span class="c">#Allow querying additional attributes</span>
-        <span class="k">if</span> <span class="n">attributeMap</span><span class="p">:</span>
-            <span class="n">query</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="o">+</span> <span class="n">attributeMap</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="k">if</span> <span class="n">attribute_map</span><span class="p">:</span>
+            <span class="n">query</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">query</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="o">+</span> <span class="n">attribute_map</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
 
-        <span class="n">results</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">query</span><span class="p">)</span>
+        <span class="n">results</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">query</span><span class="p">,</span> <span class="n">page</span><span class="o">=</span><span class="n">page</span><span class="p">,</span> <span class="n">limit</span><span class="o">=</span><span class="n">limit</span><span class="p">)</span>
 
         <span class="k">raise</span> <span class="n">Return</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_list_cursor_to_json</span><span class="p">(</span><span class="n">results</span><span class="p">))</span>
 </div>
     <span class="k">def</span> <span class="nf">_dictionary_to_cursor</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Take a raw dictionary representation and adapt it back to a proper mongo document dictionary</span>
+<span class="sd">        :param dict obj: The object to adapt</span>
+<span class="sd">        :return: a mongo document with complex types for storage in mongo</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">):</span>
             <span class="n">obj</span><span class="p">[</span><span class="s">&quot;_id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ObjectId</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;id&quot;</span><span class="p">))</span>
             <span class="k">del</span> <span class="n">obj</span><span class="p">[</span><span class="s">&quot;id&quot;</span><span class="p">]</span>
@@ -756,7 +885,12 @@
         <span class="k">return</span> <span class="n">obj</span>
 
     <span class="k">def</span> <span class="nf">_obj_cursor_to_dictionary</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cursor</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Handle conversion of pymongo cursor into a JSON object formatted for UI consumption&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Handle conversion of pymongo cursor into a JSON object formatted for UI consumption</span>
+
+<span class="sd">        :param dict cursor: a mongo document that should be converted to primitive types for the client code</span>
+<span class="sd">        :returns: a primitive dictionary</span>
+<span class="sd">        :rtype: dict</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">cursor</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">cursor</span>
 
@@ -776,7 +910,7 @@
     <span class="sd">&quot;&quot;&quot;BSONEncorder is used to transform certain value types to a more desirable format&quot;&quot;&quot;</span>
 
 <div class="viewcode-block" id="BSONEncoder.default"><a class="viewcode-back" href="../../caesium.html#caesium.document.BSONEncoder.default">[docs]</a>    <span class="k">def</span> <span class="nf">default</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">obj</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-
+        <span class="sd">&quot;&quot;&quot;Handles the adapting of special types from mongo&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">time</span><span class="o">.</span><span class="n">mktime</span><span class="p">(</span><span class="n">obj</span><span class="o">.</span><span class="n">timetuple</span><span class="p">())</span>
 
@@ -801,15 +935,19 @@
     <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="RevisionUpdateFailed"><a class="viewcode-back" href="../../caesium.html#caesium.document.RevisionUpdateFailed">[docs]</a><span class="k">class</span> <span class="nc">RevisionUpdateFailed</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Occurs whena revision update cannot be applied&quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="RevisionActionNotValid"><a class="viewcode-back" href="../../caesium.html#caesium.document.RevisionActionNotValid">[docs]</a><span class="k">class</span> <span class="nc">RevisionActionNotValid</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Invalid revision type&quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="RevisionNotFound"><a class="viewcode-back" href="../../caesium.html#caesium.document.RevisionNotFound">[docs]</a><span class="k">class</span> <span class="nc">RevisionNotFound</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Revision was not found&quot;&quot;&quot;</span>
     <span class="k">pass</span>
 </div>
 <div class="viewcode-block" id="NoRevisionsAvailable"><a class="viewcode-back" href="../../caesium.html#caesium.document.NoRevisionsAvailable">[docs]</a><span class="k">class</span> <span class="nc">NoRevisionsAvailable</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;No Revisions Available&quot;&quot;&quot;</span>
     <span class="k">pass</span></div>
 </pre></div>
 

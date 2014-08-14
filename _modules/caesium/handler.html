@@ -146,7 +146,6 @@
 <span class="sd">        :param str name: The name of the json key you want to get the value for</span>
 <span class="sd">        :param bool default: The default value if nothing is found</span>
 <span class="sd">        :returns: value of the argument name request</span>
-<span class="sd">        :rtype: str</span>
 <span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="k">if</span> <span class="n">default</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
@@ -390,7 +389,7 @@
 <span class="sd">        Get an by object by unique identifier</span>
 
 <span class="sd">        :id string id: the bson id of an object</span>
-
+<span class="sd">        :rtype: JSON</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Id&quot;</span><span class="p">):</span>
@@ -416,11 +415,10 @@
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseRestfulMotorHandler.put"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRestfulMotorHandler.put">[docs]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Update a store by bson ObjectId</span>
+<span class="sd">        Update a resource by bson ObjectId</span>
 
-<span class="sd">        :id: bson ObjectId:</span>
-<span class="sd">        :json: &lt;store&gt; post body</span>
-<span class="sd">        :return: Store</span>
+<span class="sd">        :returns: json string representation</span>
+<span class="sd">        :rtype: JSON</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c">#Async update flow</span>
@@ -479,6 +477,10 @@
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Create a new object resource</span>
 
+<span class="sd">        :json: Object to create</span>
+<span class="sd">        :returns: json string representation</span>
+<span class="sd">        :rtype: JSON</span>
+
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
 
@@ -520,7 +522,10 @@
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseRestfulMotorHandler.delete"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRestfulMotorHandler.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Delete a store resource by bson id</span>
+<span class="sd">        Delete a resource by bson id</span>
+<span class="sd">        :raises: 404 Not Found</span>
+<span class="sd">        :raises: 400 Bad request</span>
+<span class="sd">        :raises: 500 Server Error</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">response</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="nb">id</span><span class="p">)</span>
@@ -535,6 +540,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">(</span><span class="mi">400</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s">&quot;Your ID is malformed: </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="nb">id</span><span class="p">)</span>
         <span class="k">except</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">raise_error</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">finish</span><span class="p">()</span>
 </div></div>
 <div class="viewcode-block" id="BaseRevisionList"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRevisionList">[docs]</a><span class="k">class</span> <span class="nc">BaseRevisionList</span><span class="p">(</span><span class="n">BaseRestfulMotorHandler</span><span class="p">):</span>
 
@@ -546,6 +553,13 @@
 </div>
     <span class="nd">@coroutine</span>
     <span class="k">def</span> <span class="nf">__lazy_migration</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a revision for a master id that didn&#39;t previously have a revision, this allows</span>
+<span class="sd">        you to easily turn on revisioning for a collection that didn&#39;t previously allow for it.</span>
+
+<span class="sd">        :param master_id:</span>
+<span class="sd">        :returns: list of objects</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">collection_name</span><span class="p">:</span>
@@ -558,7 +572,12 @@
 
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseRevisionList.get"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseRevisionList.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">master_id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get a list of revisions by master ID</span>
 
+<span class="sd">        :param master_id:</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">client</span> <span class="o">=</span> <span class="n">BaseAsyncMotorDocument</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s">_revisions&quot;</span> <span class="o">%</span> <span class="n">collection_name</span><span class="p">)</span>
 
@@ -620,6 +639,13 @@
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="RevisionHandler.put"><a class="viewcode-back" href="../../caesium.html#caesium.handler.RevisionHandler.put">[docs]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Update a revision by ID</span>
+
+<span class="sd">        :param id: BSON id</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">collection_name</span><span class="p">:</span>
@@ -631,6 +657,13 @@
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="RevisionHandler.delete"><a class="viewcode-back" href="../../caesium.html#caesium.handler.RevisionHandler.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Delete a revision by ID</span>
+
+<span class="sd">        :param id: BSON id</span>
+<span class="sd">        :return:</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+
         <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">collection_name</span><span class="p">:</span>
@@ -642,6 +675,12 @@
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="RevisionHandler.post"><a class="viewcode-back" href="../../caesium.html#caesium.handler.RevisionHandler.post">[docs]</a>    <span class="k">def</span> <span class="nf">post</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Create a revision manually without the stack</span>
+
+<span class="sd">        :param id: BSON id</span>
+<span class="sd">        :return: JSON</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">collection_name</span><span class="p">:</span>
@@ -654,7 +693,12 @@
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="RevisionHandler.get"><a class="viewcode-back" href="../../caesium.html#caesium.handler.RevisionHandler.get">[docs]</a>    <span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Get a preview of a revision&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Get revision based on the stack preview algorithm</span>
+
+<span class="sd">        :param id: BSON id</span>
+<span class="sd">        :return: JSON</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="ow">not</span> <span class="n">collection_name</span><span class="p">:</span>
@@ -679,7 +723,20 @@
 
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Standard search end point for a resource of any type, override this get method as necessary</span>
-<span class="sd">        in any specifc sub class.  This is mostly here as a convenience for basic querying functionality.</span>
+<span class="sd">        in any specifc sub class.  This is mostly here as a convenience for basic querying functionality</span>
+<span class="sd">        on attribute</span>
+
+<span class="sd">        example URL::</span>
+
+<span class="sd">            foo?attr1=foo&amp;attr2=true</span>
+
+<span class="sd">        will create a query of::</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;attr1&quot;: &quot;foo&quot;,</span>
+<span class="sd">                &quot;attr2&quot;: true</span>
+<span class="sd">            }</span>
+
 
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">objects</span> <span class="o">=</span> <span class="k">yield</span> <span class="bp">self</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_mongo_query_from_arguments</span><span class="p">())</span>
@@ -698,7 +755,18 @@
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseBulkScheduleableUpdateHandler.put"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseBulkScheduleableUpdateHandler.put">[docs]</a>    <span class="k">def</span> <span class="nf">put</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update many objects with a single toa&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Update many objects with a single PUT.</span>
+
+<span class="sd">        Example Request::</span>
+
+<span class="sd">            {</span>
+<span class="sd">                &quot;ids&quot;: [&quot;52b0ede98ac752b358b1bd69&quot;, &quot;52b0ede98ac752b358b1bd70&quot;],</span>
+<span class="sd">                &quot;patch&quot;: {</span>
+<span class="sd">                    &quot;foo&quot;: &quot;bar&quot;</span>
+<span class="sd">                }</span>
+<span class="sd">            }</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">toa</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;Caesium-TOA&quot;</span><span class="p">)</span>
 
@@ -728,7 +796,10 @@
 </div>
     <span class="nd">@coroutine</span>
 <div class="viewcode-block" id="BaseBulkScheduleableUpdateHandler.delete"><a class="viewcode-back" href="../../caesium.html#caesium.handler.BaseBulkScheduleableUpdateHandler.delete">[docs]</a>    <span class="k">def</span> <span class="nf">delete</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bulk_id</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Update many objects with a single toa&quot;&quot;&quot;</span>
+        <span class="sd">&quot;&quot;&quot;Update many objects with a single toa</span>
+
+<span class="sd">        :param str bulk_id: The bulk id for the job you want to delete</span>
+<span class="sd">        &quot;&quot;&quot;</span>
 
         <span class="n">collection_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&quot;collection&quot;</span><span class="p">)</span>
 
