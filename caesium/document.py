@@ -24,8 +24,8 @@ class AsyncRevisionStackManager(object):
     def __init__(self, settings):
         """
         Constructor
-        :attr dictionary collection: The collection you want revision documents on
-        :attr string master_id: The id of the master within the collection
+
+        :param dict settings: The applications settings, typically it is self.settings in a handler
         """
         self.logger = logging.getLogger(self.__class__.__name__)
         self.settings = settings
@@ -34,6 +34,10 @@ class AsyncRevisionStackManager(object):
 
     @coroutine
     def publish(self):
+        """
+        Iterate over the scheduler collections and apply any actions found
+        """
+
         try:
              for collection in self.settings.get("scheduler").get("collections"):
                 yield self.publish_for_collection(collection)
@@ -42,6 +46,12 @@ class AsyncRevisionStackManager(object):
 
     @coroutine
     def set_all_revisions_to_in_process(self, ids):
+        """
+        Set all revisions found to in process, so that other threads will not pick them up.
+
+        :param list ids:
+        """
+
         predicate = {
             "_id" : {
                 "$in" : [ ObjectId(id) for id in ids ]
@@ -50,13 +60,18 @@ class AsyncRevisionStackManager(object):
 
         set = {"$set": { "inProcess": True }}
 
-        self.logger.info(predicate)
-
         yield self.revisions.collection.update(predicate, set, multi=True)
 
 
     @coroutine
     def __get_pending_revisions(self):
+        """
+        Get all the pending revisions after the current time
+
+        :return: A list of revisions
+        :rtype: list
+
+        """
         dttime = time.mktime(datetime.datetime.now().timetuple())
         changes = yield self.revisions.find({
             "toa" : {
@@ -72,7 +87,11 @@ class AsyncRevisionStackManager(object):
 
     @coroutine
     def publish_for_collection(self, collection_name):
+        """
+        Run the publishing operations for a given collection
 
+        :param str collection_name:
+        """
         self.revisions = BaseAsyncMotorDocument("%s_revisions" % collection_name, self.settings)
 
         changes = yield self.__get_pending_revisions()
@@ -141,8 +160,11 @@ class AsyncSchedulableDocumentRevisionStack(object):
     def __init__(self, collection_name, settings, collection_schema=None, master_id=None):
         """
         Constructor
-        :attr dictionary collection: The collection you want revision documents on
-        :attr string master_id: The id of the master within the collection
+
+        :param str collection: The collection you want revision documents on
+        :param dict settings: The application settings
+        :param dict collection_schema: This is a JSON Schema dictionary to describe the expected object for that type
+        :param str master_id: The Master ID for this set of revisions
         """
         self.master_id=master_id
         self.logger = logging.getLogger(self.__class__.__name__)
@@ -156,20 +178,11 @@ class AsyncSchedulableDocumentRevisionStack(object):
         self.previews = BaseAsyncMotorDocument("previews", self.settings)
 
     @coroutine
-    def search(self, id=None, number=None):
-        """
-
-        Find a revision by either unique bson id or numeric revision within the stack
-
-        :arg id string: Bson object id as a string
-        :arg number int: The numerical version in the stack from oldest to newest
-
-        """
-        pass
-
-    @coroutine
     def __update_action(self, revision):
-        """Update a master document and revision history document"""
+        """Update a master document and revision history document
+
+        :param dict revision: The revision dictionary
+        """
 
         patch = revision.get("patch")
         if patch.get("_id"):
@@ -182,6 +195,15 @@ class AsyncSchedulableDocumentRevisionStack(object):
 
     @coroutine
     def __insert_action(self, revision):
+        """
+        Handle the insert action type.
+
+        Creates new document to be created in this collection.
+        This allows you to stage a creation of an object
+
+        :param dict revision: The revision dictionary
+
+        """
 
         revision["patch"]["_id"] = ObjectId(revision.get("master_id"))
 
@@ -192,14 +214,23 @@ class AsyncSchedulableDocumentRevisionStack(object):
 
     @coroutine
     def __delete_action(self, revision):
+        """
+        Handle a delete action to a partiular master id via the revision.
 
+        :param dict revision:
+        :return:
+        """
         delete_response = yield self.collection.delete(revision.get("master_id"))
         if delete_response.get("n") == 0:
             raise DocumentRevisionDeleteFailed()
 
     @coroutine
     def pop(self):
-        """Pop the top revision off the stack back onto the collection at the given id"""
+        """Pop the top revision off the stack back onto the collection at the given id. This method applies the action.
+
+        Note: This assumes you don't have two revisions scheduled closer than a single scheduling cycle.
+
+        """
         revisions = yield self.list()
 
         if len(revisions) > 0:
@@ -245,7 +276,8 @@ class AsyncSchedulableDocumentRevisionStack(object):
 
             revision = yield self.revisions.find_one_by_id(revision.get("id"))
 
-            #Notify any clients via websocket
+            #TODO: Make this callback method something that can be passed in.  This was used in
+            #the original implementation to send back to the client via websocket
             #revision_success.send('revision_success', type="RevisionSuccess", data=revision)
 
             raise Return(revision)
@@ -253,7 +285,10 @@ class AsyncSchedulableDocumentRevisionStack(object):
         raise Return(None)
 
     def __make_patch_storeable(self, patch):
-        """Replace all dots with pipes"""
+        """Replace all dots with pipes in key names, mongo doesn't like to store keys with dots.
+
+        :param dict patch: The patch that needs to be made storeable and applied in the future
+        """
         new_patch = {}
         for key in patch:
             new_patch[key.replace(".", "|")] = patch[key]
@@ -261,7 +296,12 @@ class AsyncSchedulableDocumentRevisionStack(object):
         return new_patch
 
     def __make_storeable_patch_patchable(self, patch):
-        """Replace all pipes with dots"""
+        """Replace all pipes with dots, transform back into the a namespace path.
+        This is done before the $set query is applied to the document
+
+        :param dict patch: The patch that is to be prepared to be applied
+        """
+
         new_patch = {}
         for key in patch:
             new_patch[key.replace("|", ".")] = patch[key]
@@ -269,12 +309,17 @@ class AsyncSchedulableDocumentRevisionStack(object):
         return new_patch
 
     @coroutine
-    def push(self, patch, toa=None, meta={}):
-        """Push a change on to the revision stack for this object
+    def push(self, patch=None, toa=None, meta=None):
+        """Push a change on to the revision stack for this ObjectId.  Pushing onto the stack is how you
+        get revisions to be staged and scheduled for some future time.
+
         :param dict patch: None Denotes Delete
-        :param int toa:
-        :param bool delete:
+        :param int toa: Time of action
+        :param dict meta: The meta data for this action
         """
+
+        if not meta:
+            meta = {}
 
         if not toa:
             toa = time.mktime(datetime.datetime.now().timetuple())
@@ -326,8 +371,10 @@ class AsyncSchedulableDocumentRevisionStack(object):
 
     @coroutine
     def list(self, toa=None, show_history=False):
-        """Return all revisions
-        :param show_history: 
+        """Return all revisions for this stack
+
+        :param int toa: The time of action as a UTC timestamp
+        :param bool show_history: Whether to show historical revisions
         """
         if not toa:
             toa = time.mktime(datetime.datetime.now().timetuple())
@@ -350,7 +397,16 @@ class AsyncSchedulableDocumentRevisionStack(object):
 
     @coroutine
     def _lazy_migration(self, patch=None, meta=None, toa=None):
+        """
+        Handle when a revision scheduling is turned onto a collection that was previously not scheduleable.
+        This method will create the first revision for each object before its every used in the context of scheduling.
 
+        :param dict patch: The patch that should be used
+        :param dict meta: Meta data for this action
+        :param int toa: The time of action
+        :return: A legacy revision for a document that was previously
+        :rtype: list
+        """
         objects = yield self.revisions.find({"master_id": self.master_id}, limit=1)
 
         if len(objects) > 0:
@@ -396,18 +452,30 @@ class AsyncSchedulableDocumentRevisionStack(object):
 
     @coroutine
     def __create_preview_object_base(self, dct):
+        """
+        The starting point for a preview of a future object.
+        This is the object which will have future revisions iterated and applied to.
+
+        :param dict dct: The starting object dictionary
+        :return: The preview object id
+        :rtype: str
+
+        """
         if dct.get("_id"):
             del dct["_id"]
 
         preview_object_id = yield self.previews.insert(dct)
-#        preview_object = yield self.previews.find_one_by_id(preview_object_id)
 
         raise Return(preview_object_id)
 
     @coroutine
     def preview(self, revision_id):
-        """Get an ephemeral preview of a revision with all
-        revisions applied between it and the current state"""
+        """Get an ephemeral preview of a revision with all revisions applied between it and the current state
+
+        :param str revision_id: The ID of the revision state you want to preview the master id at.
+        :return: A snapshot of a future state of the object
+        :rtype: dict
+        """
 
         target_revision = yield self.revisions.find_one_by_id(revision_id)
 
@@ -475,20 +543,30 @@ class AsyncSchedulableDocumentRevisionStack(object):
     @coroutine
     def peek(self):
         """Return the top object on the stack for this ID
-        :rtype : object
+
+        :returns: The next revision
+        :rtype: dict
         """
         revisions = yield self.list()
         raise Return(revisions[0] if len(revisions) > 0 else None)
 
 
 class BaseAsyncMotorDocument(object):
-    """Concrete abstract class for a mongo collection and document interface"""
+    """Concrete abstract class for a mongo collection and document interface
+
+    This class simplifies the use of the motor library, encoding/decoding special types, etc
+    """
 
     def __init__(self, collection_name, settings, schema=None, scheduleable=False):
 
         """
         Constructor
-        :attr dictionary collection: The collection you wantto
+
+        :param str collection_name: The name of the collection you want to operate on
+        :param dict settings: The application settings
+        :param dict schema: A JSON Schema definition for this object type, used for validation
+        :param bool scheduleable: Whether or not this document is scheduleable
+
         """
         self.logger = logging.getLogger(self.__class__.__name__)
         self.settings = settings
@@ -503,18 +581,16 @@ class BaseAsyncMotorDocument(object):
 
     @coroutine
     def insert(self, dct, toa=None, comment=""):
-        """Create a docume  nt
-        :param dct:
+        """Create a document
+
+        :param dict dct:
+        :param toa toa: Optional time of action, triggers this to be handled as a future insert action for a new document
+        :param str comment: A comment
         :rtype str:
         :returns string bson id:
         """
         if self.schema:
             jsonschema.validate(dct, self.schema)
-
-        if self.scheduleable:
-            stack = AsyncSchedulableDocumentRevisionStack(self.collection_name)
-            revision_id = yield stack.push(dct, toa, comment=comment)
-            raise Return(revision_id)
 
         bson_obj = yield self.collection.insert(dct)
 
@@ -522,28 +598,35 @@ class BaseAsyncMotorDocument(object):
 
     @coroutine
     def upsert(self, _id, dct, attribute="_id"):
-        """Update or Insert a new document"""
+        """Update or Insert a new document
 
-        mongo_response = yield self.update(_id, dct, upsert=True, attribute=attribute, toa=None)
+        :param str _id: The document id
+        :param dict dct: The dictionary to set on the document
+        :param str attribute: The attribute to query for to find the object to set this data on
+        :returns: JSON Mongo client response including the "n" key to show number of objects effected
+        """
+
+        mongo_response = yield self.update(_id, dct, upsert=True, attribute=attribute)
 
         raise Return(mongo_response)
 
     @coroutine
-    def update(self, update_by_value, dct, upsert=False, attribute="_id", toa=None, comment=""):
+    def update(self, predicate_value, dct, upsert=False, attribute="_id"):
+        """Update an existing document
 
-        """Update an existing document"""
+        :param predicate_value: The value of the predicate
+        :param dict dct: The dictionary to update with
+        :param bool upsert: Whether this is an upsert action
+        :param str attribute: The attribute to query for to find the object to set this data ond
+        :returns: JSON Mongo client response including the "n" key to show number of objects effected
+        """
         if self.schema:
             jsonschema.validate(dct, self.schema)
 
-        if self.scheduleable:
-            stack = AsyncSchedulableDocumentRevisionStack(self.collection_name, master_id=update_by_value)
-            revision_id = yield stack.push(dct, toa, comment=comment)
-            raise Return(revision_id)
+        if attribute=="_id" and not isinstance(predicate_value, ObjectId):
+            predicate_value = ObjectId(predicate_value)
 
-        if attribute=="_id" and not isinstance(update_by_value, ObjectId):
-            update_by_value = ObjectId(update_by_value)
-
-        predicate = {attribute: update_by_value}
+        predicate = {attribute: predicate_value}
 
 
         dct = self._dictionary_to_cursor(dct)
@@ -554,8 +637,14 @@ class BaseAsyncMotorDocument(object):
 
 
     @coroutine
-    def patch(self, predicate_value, attrs, predicate_attribute="_id", toa=None):
-        """Update an existing document"""
+    def patch(self, predicate_value, attrs, predicate_attribute="_id"):
+        """Update an existing document via a $set query, this will apply only these attributes.
+
+        :param predicate_value: The value of the predicate
+        :param dict attrs: The dictionary to apply to this object
+        :param str predicate_attribute: The attribute to query for to find the object to set this data ond
+        :returns: JSON Mongo client response including the "n" key to show number of objects effected
+        t"""
 
         if predicate_attribute=="_id" and not isinstance(predicate_value, ObjectId):
             predicate_value = ObjectId(predicate_value)
@@ -574,27 +663,38 @@ class BaseAsyncMotorDocument(object):
         raise Return(self._obj_cursor_to_dictionary(mongo_response))
 
     @coroutine
-    def delete(self, _id, toa=None, comment=""):
-        """Delete a document or create a DELETE revision"""
+    def delete(self, _id):
+        """Delete a document or create a DELETE revision
 
-        if self.scheduleable:
-            stack = AsyncSchedulableDocumentRevisionStack(self.collection_name, master_id=_id)
-            revision_id = yield stack.push(None, toa=toa, delete=True, comment=comment)
-            raise Return(revision_id)
-
+        :param str _id: The ID of the document to be deleted
+        :returns: JSON Mongo client response including the "n" key to show number of objects effected
+        """
         mongo_response = yield self.collection.remove({"_id": ObjectId(_id)})
 
         raise Return(mongo_response)
 
     @coroutine
     def find_one(self, query):
-        """Find one wrapper with conversion to dictionary"""
+        """Find one wrapper with conversion to dictionary
+
+        :param dict query: A Mongo query
+        """
         mongo_response = yield self.collection.find_one(query)
         raise Return(self._obj_cursor_to_dictionary(mongo_response))
 
     @coroutine
     def find(self, query, orderby=None, order_by_direction=1, page=0, limit=0):
-        """Find a document by any criteria"""
+        """Find a document by any criteria
+
+        :param dict query: The query to perform
+        :param str orderby: The attribute to order results by
+        :param int order_by_direction: 1 or -1
+        :param int page: The page to return
+        :param int limit: Number of results per page
+        :returns: A list of results
+        :rtype: list
+
+        """
 
         cursor = self.collection.find(query)
 
@@ -611,18 +711,41 @@ class BaseAsyncMotorDocument(object):
 
     @coroutine
     def find_one_by_id(self, _id):
+        """
+        Find a single document by id
+
+        :param str _id: BSON string repreentation of the Id
+        :return: a signle object
+        :rtype: dict
+
+        """
         document = (yield self.collection.find_one({"_id": ObjectId(_id)}))
         raise Return(self._obj_cursor_to_dictionary(document))
 
     @coroutine
     def create_index(self, index, index_type=GEO2D):
-        """Create a geospatial 2d index on a given attribute"""
-        self.logger.info("Adding geospatial index to stores on attribute: %s" % index)
+        """Create an index on a given attribute
+
+        :param str index: Attribute to set index on
+        :param str index_type: See PyMongo index types for further information, defaults to GEO2D index.
+        """
+        self.logger.info("Adding %s index to stores on attribute: %s" % (index_type, index))
         yield self.collection.create_index([(index, index_type)])
 
     @coroutine
-    def location_based_search(self, lng, lat, distance, unit="miles", attributeMap=None, page=1, numPerPage=50):
-        """Search based on location and other attribute filters"""
+    def location_based_search(self, lng, lat, distance, unit="miles", attribute_map=None, page=0, limit=50):
+        """Search based on location and other attribute filters
+
+        :param long lng: Longitude parameter
+        :param long lat: Latitude parameter
+        :param int distance: The radius of the query
+        :param str unit: The unit of measure for the query, defaults to miles
+        :param dict attribute_map: Additional attributes to apply to the location bases query
+        :param int page: The page to return
+        :param int limit: Number of results per page
+        :returns: List of objects
+        :rtype: list
+        """
 
         #Determine what type of radian conversion you want base on a unit of measure
         if unit == "miles":
@@ -639,14 +762,20 @@ class BaseAsyncMotorDocument(object):
         }
 
         #Allow querying additional attributes
-        if attributeMap:
-            query = dict(query.items() + attributeMap.items())
+        if attribute_map:
+            query = dict(query.items() + attribute_map.items())
 
-        results = yield self.find(query)
+        results = yield self.find(query, page=page, limit=limit)
 
         raise Return(self._list_cursor_to_json(results))
 
     def _dictionary_to_cursor(self, obj):
+        """
+        Take a raw dictionary representation and adapt it back to a proper mongo document dictionary
+        :param dict obj: The object to adapt
+        :return: a mongo document with complex types for storage in mongo
+        :rtype: dict
+        """
         if obj.get("id"):
             obj["_id"] = ObjectId(obj.get("id"))
             del obj["id"]
@@ -657,7 +786,12 @@ class BaseAsyncMotorDocument(object):
         return obj
 
     def _obj_cursor_to_dictionary(self, cursor):
-        """Handle conversion of pymongo cursor into a JSON object formatted for UI consumption"""
+        """Handle conversion of pymongo cursor into a JSON object formatted for UI consumption
+
+        :param dict cursor: a mongo document that should be converted to primitive types for the client code
+        :returns: a primitive dictionary
+        :rtype: dict
+        """
         if not cursor:
             return cursor
 
@@ -677,7 +811,7 @@ class BSONEncoder(JSONEncoder):
     """BSONEncorder is used to transform certain value types to a more desirable format"""
 
     def default(self, obj, **kwargs):
-
+        """Handles the adapting of special types from mongo"""
         if isinstance(obj, datetime.datetime):
             return time.mktime(obj.timetuple())
 
@@ -702,13 +836,17 @@ class DocumentRevisionDeleteFailed(Exception):
     pass
 
 class RevisionUpdateFailed(Exception):
+    """Occurs whena revision update cannot be applied"""
     pass
 
 class RevisionActionNotValid(Exception):
+    """Invalid revision type"""
     pass
 
 class RevisionNotFound(Exception):
+    """Revision was not found"""
     pass
 
 class NoRevisionsAvailable(Exception):
+    """No Revisions Available"""
     pass

@@ -47,7 +47,6 @@ class BaseHandler(tornado.web.RequestHandler):
         :param str name: The name of the json key you want to get the value for
         :param bool default: The default value if nothing is found
         :returns: value of the argument name request
-        :rtype: str
         """
 
         if default is None:
@@ -291,7 +290,7 @@ class BaseRestfulMotorHandler(BaseHandler):
         Get an by object by unique identifier
 
         :id string id: the bson id of an object
-
+        :rtype: JSON
         """
         try:
             if self.request.headers.get("Id"):
@@ -317,11 +316,10 @@ class BaseRestfulMotorHandler(BaseHandler):
     @coroutine
     def put(self, id):
         """
-        Update a store by bson ObjectId
+        Update a resource by bson ObjectId
 
-        :id: bson ObjectId:
-        :json: <store> post body
-        :return: Store
+        :returns: json string representation
+        :rtype: JSON
         """
         try:
             #Async update flow
@@ -380,6 +378,10 @@ class BaseRestfulMotorHandler(BaseHandler):
         """
         Create a new object resource
 
+        :json: Object to create
+        :returns: json string representation
+        :rtype: JSON
+
         """
         try:
 
@@ -421,7 +423,10 @@ class BaseRestfulMotorHandler(BaseHandler):
     @coroutine
     def delete(self, id):
         """
-        Delete a store resource by bson id
+        Delete a resource by bson id
+        :raises: 404 Not Found
+        :raises: 400 Bad request
+        :raises: 500 Server Error
         """
         try:
             response = yield self.client.delete(id)
@@ -437,6 +442,8 @@ class BaseRestfulMotorHandler(BaseHandler):
         except:
             self.raise_error()
 
+        self.finish()
+
 class BaseRevisionList(BaseRestfulMotorHandler):
 
     def initialize(self):
@@ -447,6 +454,13 @@ class BaseRevisionList(BaseRestfulMotorHandler):
 
     @coroutine
     def __lazy_migration(self, master_id):
+        """
+        Creates a revision for a master id that didn't previously have a revision, this allows
+        you to easily turn on revisioning for a collection that didn't previously allow for it.
+
+        :param master_id:
+        :returns: list of objects
+        """
         collection_name = self.request.headers.get("collection")
 
         if collection_name:
@@ -459,7 +473,12 @@ class BaseRevisionList(BaseRestfulMotorHandler):
 
     @coroutine
     def get(self, master_id):
+        """
+        Get a list of revisions by master ID
 
+        :param master_id:
+        :return:
+        """
         collection_name = self.request.headers.get("collection")
         self.client = BaseAsyncMotorDocument("%s_revisions" % collection_name)
 
@@ -521,6 +540,13 @@ class RevisionHandler(BaseRestfulMotorHandler):
 
     @coroutine
     def put(self, id):
+        """
+        Update a revision by ID
+
+        :param id: BSON id
+        :return:
+        """
+
         collection_name = self.request.headers.get("collection")
 
         if not collection_name:
@@ -532,6 +558,13 @@ class RevisionHandler(BaseRestfulMotorHandler):
 
     @coroutine
     def delete(self, id):
+        """
+        Delete a revision by ID
+
+        :param id: BSON id
+        :return:
+        """
+
         collection_name = self.request.headers.get("collection")
 
         if not collection_name:
@@ -543,6 +576,12 @@ class RevisionHandler(BaseRestfulMotorHandler):
 
     @coroutine
     def post(self, id=None):
+        """
+        Create a revision manually without the stack
+
+        :param id: BSON id
+        :return: JSON
+        """
         collection_name = self.request.headers.get("collection")
 
         if not collection_name:
@@ -555,7 +594,12 @@ class RevisionHandler(BaseRestfulMotorHandler):
 
     @coroutine
     def get(self, id):
-        """Get a preview of a revision"""
+        """
+        Get revision based on the stack preview algorithm
+
+        :param id: BSON id
+        :return: JSON
+        """
         collection_name = self.request.headers.get("collection")
 
         if not collection_name:
@@ -580,7 +624,20 @@ class BaseMotorSearch(BaseHandler):
 
         """
         Standard search end point for a resource of any type, override this get method as necessary
-        in any specifc sub class.  This is mostly here as a convenience for basic querying functionality.
+        in any specifc sub class.  This is mostly here as a convenience for basic querying functionality
+        on attribute
+
+        example URL::
+
+            foo?attr1=foo&attr2=true
+
+        will create a query of::
+
+            {
+                "attr1": "foo",
+                "attr2": true
+            }
+
 
         """
         objects = yield self.client.find(self.get_mongo_query_from_arguments())
@@ -599,7 +656,18 @@ class BaseBulkScheduleableUpdateHandler(BaseHandler):
 
     @coroutine
     def put(self, id=None):
-        """Update many objects with a single toa"""
+        """Update many objects with a single PUT.
+
+        Example Request::
+
+            {
+                "ids": ["52b0ede98ac752b358b1bd69", "52b0ede98ac752b358b1bd70"],
+                "patch": {
+                    "foo": "bar"
+                }
+            }
+
+        """
 
         toa = self.request.headers.get("Caesium-TOA")
 
@@ -629,7 +697,10 @@ class BaseBulkScheduleableUpdateHandler(BaseHandler):
 
     @coroutine
     def delete(self, bulk_id):
-        """Update many objects with a single toa"""
+        """Update many objects with a single toa
+
+        :param str bulk_id: The bulk id for the job you want to delete
+        """
 
         collection_name = self.request.headers.get("collection")
 
