@@ -6,3 +6,4 @@ MANIFEST
 build/
 dist/
 docs/_build
+Caesium.egg-info
