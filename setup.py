@@ -5,7 +5,7 @@ __author__ = 'hunt3r'
 from setuptools import setup
 
 setup(name='Caesium',
-      version='0.3',
+      version='0.3.1',
       license='http://www.apache.org/licenses/LICENSE-2.0',
       description='Caesium document revision and RESTful tools.',
       author='Chris Hunter',

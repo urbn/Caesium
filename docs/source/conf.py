@@ -47,7 +47,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Caesium'
-copyright = u'2014, Christopher D. Hunter'
+copyright = u'2014, Urban Outfitters, Inc.'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
