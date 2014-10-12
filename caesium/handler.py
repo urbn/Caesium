@@ -388,7 +388,10 @@ class BaseRestfulMotorHandler(BaseHandler):
         """
         try:
 
-            base_object = json_util.loads(self.request.body)
+            try:
+                base_object = json_util.loads(self.request.body)
+            except TypeError:
+                base_object = json_util.loads(self.request.body.decode())
 
             #assert not hasattr(base_object, "_id")
 
