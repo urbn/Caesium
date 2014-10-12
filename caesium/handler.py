@@ -11,17 +11,20 @@ import uuid
 from bson.objectid import ObjectId
 from bson import json_util
 from jsonschema import ValidationError
-from pymongo.errors import InvalidDocument, InvalidOperation, InvalidId
+from pymongo.errors import InvalidId
 import tornado.web
 from tornado.gen import coroutine, Return
-from tornado.web import authenticated
 
-from caesium.document import AsyncSchedulableDocumentRevisionStack, BaseAsyncMotorDocument
+from caesium.document import (
+    AsyncSchedulableDocumentRevisionStack,
+    BaseAsyncMotorDocument,
+)
 
 
 class BaseHandler(tornado.web.RequestHandler):
-    """A class to collect common handler methods that can be useful in your individual implementation,
-    this includes functions for working with query strings and Motor/Mongo type documents
+    """A class to collect common handler methods that can be useful in your
+    individual implementation, this includes functions for working with query
+    strings and Motor/Mongo type documents
     """
 
     def initialize(self):
@@ -61,8 +64,9 @@ class BaseHandler(tornado.web.RequestHandler):
                 msg = "Missing argument '%s'" % name
                 self.logger.debug(msg)
                 self.raise_error(400, msg)
-            self.logger.debug("Returning default argument %s, as we couldn't find "
-                    "'%s' in %s" % (default, name, self.request.arguments))
+            self.logger.debug("Returning default argument %s, as we couldn't "
+                              "find '%s' in %s" % (default, name,
+                                                   self.request.arguments))
             return default
         arg = self.request.arguments[name]
         return arg
@@ -125,7 +129,6 @@ class BaseHandler(tornado.web.RequestHandler):
         :param Cursor cursor: A motor client database cursor
         """
         return [self.obj_cursor_to_json(obj) for obj in cursor]
-
 
     def obj_cursor_to_json(self, cursor):
         """Handle conversion of pymongo cursor into a JSON object formatted for UI consumption
@@ -297,23 +300,21 @@ class BaseRestfulMotorHandler(BaseHandler):
         """
         try:
             if self.request.headers.get("Id"):
-                object = yield self.client.find_one({self.request.headers.get("Id"): id})
+                object_ = yield self.client.find_one({self.request.headers.get("Id"): id})
             else:
-                object = yield self.client.find_one_by_id(id)
+                object_ = yield self.client.find_one_by_id(id)
 
-            if object:
-                self.write(object)
+            if object_:
+                self.write(object_)
                 return
 
-            self.raise_error(404, "%s/%s not found" %(self.object_name, id ))
+            self.raise_error(404, "%s/%s not found" % (self.object_name, id))
 
         except InvalidId as ex:
             self.raise_error(400, message="Your ID is malformed: %s" % id)
         except Exception as ex:
             self.logger.error(ex)
             self.raise_error()
-
-
 
 
     @coroutine
@@ -326,7 +327,7 @@ class BaseRestfulMotorHandler(BaseHandler):
         """
         try:
             #Async update flow
-            object = json_util.loads(self.request.body)
+            object_ = json_util.loads(self.request.body)
 
             toa = self.request.headers.get("Caesium-TOA", None)
 
@@ -339,7 +340,7 @@ class BaseRestfulMotorHandler(BaseHandler):
             if toa:
 
                 stack = AsyncSchedulableDocumentRevisionStack(self.client.collection_name, self.settings, master_id=id)
-                revision_id = yield stack.push(object, int(toa), meta=self._get_meta_data())
+                revision_id = yield stack.push(object_, int(toa), meta=self._get_meta_data())
 
                 if isinstance(revision_id, str):
                     self.set_header("Caesium-TOA", toa)
@@ -347,20 +348,20 @@ class BaseRestfulMotorHandler(BaseHandler):
                     #We add the id of the original request, because we don't want to infer this
                     #On the client side, as the state of the client code could change easily
                     #We want this request to return with the originating ID as well.
-                    object["id"] = id
-                    self.return_resource(object)
+                    object_["id"] = id
+                    self.return_resource(object_)
                 else:
                     self.raise_error(404, "Revision not scheduled for object: %s" % id)
 
             else:
-                if object.get("_id"):
-                    del object["_id"]
+                if object_.get("_id"):
+                    del object_["_id"]
 
-                response = yield self.client.update(id, object)
+                response = yield self.client.update(id, object_)
 
                 if response.get("updatedExisting"):
-                    object = yield self.client.find_one_by_id(id)
-                    self.return_resource(object)
+                    object_ = yield self.client.find_one_by_id(id)
+                    self.return_resource(object_)
                 else:
                     self.raise_error(404, "Resource not found: %s" % id)
 
@@ -461,8 +462,9 @@ class BaseRevisionList(BaseRestfulMotorHandler):
     @coroutine
     def __lazy_migration(self, master_id):
         """
-        Creates a revision for a master id that didn't previously have a revision, this allows
-        you to easily turn on revisioning for a collection that didn't previously allow for it.
+        Creates a revision for a master id that didn't previously have a
+        revision, this allows you to easily turn on revisioning for a
+        collection that didn't previously allow for it.
 
         :param master_id:
         :returns: list of objects
@@ -470,11 +472,17 @@ class BaseRevisionList(BaseRestfulMotorHandler):
         collection_name = self.request.headers.get("collection")
 
         if collection_name:
-            stack = AsyncSchedulableDocumentRevisionStack(collection_name, self.settings, master_id=master_id, )
+            stack = AsyncSchedulableDocumentRevisionStack(collection_name,
+                                                          self.settings,
+                                                          master_id=master_id,
+                                                          )
             objects = yield stack._lazy_migration(meta=self._get_meta_data())
             raise Return(objects)
 
-        self.raise_error(500, "This object %s/%s didn't exist as a revision, we tried to create it but we failed... Sorry. Please check this object"% (collection_name, master_id))
+        self.raise_error(500, "This object %s/%s didn't exist as a revision, "
+                         "we tried to create it but we failed... Sorry. "
+                         "Please check this object" % (collection_name,
+                                                       master_id))
         raise Return(None)
 
     @coroutine
@@ -488,8 +496,9 @@ class BaseRevisionList(BaseRestfulMotorHandler):
         collection_name = self.request.headers.get("collection")
         self.client = BaseAsyncMotorDocument("%s_revisions" % collection_name)
 
-        limit=self.get_query_argument("limit", 2)
-        add_current_revision = self.get_arg_value_as_type("addCurrent", "false")
+        limit = self.get_query_argument("limit", 2)
+        add_current_revision = self.get_arg_value_as_type("addCurrent",
+                                                          "false")
         show_history = self.get_arg_value_as_type("showHistory", "false")
 
         objects_processed = []
@@ -498,14 +507,14 @@ class BaseRevisionList(BaseRestfulMotorHandler):
             limit = int(limit)
 
         objects = yield self.client.find({"master_id": master_id,
-                                     "processed": False},
-                                    orderby="toa",
-                                    order_by_direction=1,
-                                    page=0,
-                                    limit=20)
+                                          "processed": False},
+                                         orderby="toa",
+                                         order_by_direction=1,
+                                         page=0,
+                                         limit=20)
 
-        # If this is a document that should have a revision and doesn't we orchestratioin
-        # creation of the first one
+        # If this is a document that should have a revision and doesn't we
+        # orchestratioin creation of the first one
         if len(objects) == 0:
 
             new_revision = yield self.__lazy_migration(master_id)
@@ -513,18 +522,20 @@ class BaseRevisionList(BaseRestfulMotorHandler):
                 return
 
         if show_history:
-            objects_processed = yield self.client.find({"master_id": master_id, "processed": True},
-                                                  orderby="toa",
-                                                  order_by_direction=-1,
-                                                  page=0,
-                                                  limit=limit)
+            objects_processed = yield self.client.find({"master_id": master_id,
+                                                        "processed": True},
+                                                       orderby="toa",
+                                                       order_by_direction=-1,
+                                                       page=0,
+                                                       limit=limit)
 
         elif add_current_revision:
-            objects_processed = yield self.client.find({"master_id": master_id, "processed": True},
-                                                  orderby="toa",
-                                                  order_by_direction=-1,
-                                                  page=0,
-                                                  limit=1)
+            objects_processed = yield self.client.find({"master_id": master_id,
+                                                        "processed": True},
+                                                       orderby="toa",
+                                                       order_by_direction=-1,
+                                                       page=0,
+                                                       limit=1)
 
         if len(objects_processed) > 0:
             objects_processed = objects_processed[::-1]
@@ -694,9 +705,9 @@ class BaseBulkScheduleableUpdateHandler(BaseHandler):
         self.write({
             "count": len(ids),
             "result": {
-                "ids" : ids,
-                "toa" : toa,
-                "patch": patch
+                "ids": ids,
+                "toa": toa,
+                "patch": patch,
             }
         })
         self.finish()
@@ -717,7 +728,6 @@ class BaseBulkScheduleableUpdateHandler(BaseHandler):
 
         self.logger.info("Deleting revisions with bulk_id %s" % (bulk_id))
 
-        result = yield self.revisions.collection.remove({ "meta.bulk_id": bulk_id })
+        result = yield self.revisions.collection.remove({"meta.bulk_id": bulk_id})
 
         self.write(result)
-
