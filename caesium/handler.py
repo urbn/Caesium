@@ -305,9 +305,9 @@ class BaseRestfulMotorHandler(BaseHandler):
 
             self.raise_error(404, "%s/%s not found" %(self.object_name, id ))
 
-        except InvalidId, ex:
+        except InvalidId as ex:
             self.raise_error(400, message="Your ID is malformed: %s" % id)
-        except Exception, ex:
+        except Exception as ex:
             self.logger.error(ex)
             self.raise_error()
 
@@ -362,14 +362,14 @@ class BaseRestfulMotorHandler(BaseHandler):
                 else:
                     self.raise_error(404, "Resource not found: %s" % id)
 
-        except ValidationError, vex:
+        except ValidationError as vex:
             self.logger.error("%s validation error" % self.object_name, vex)
             self.raise_error(400, "Your %s cannot be updated because it is missing required fields, see docs" % self.object_name)
-        except ValueError, ex:
+        except ValueError as ex:
             self.raise_error(400, "Invalid JSON Body, check formatting. %s" % ex[0])
-        except InvalidId, ex:
+        except InvalidId as ex:
             self.raise_error(message="Your ID is malformed: %s" % id)
-        except Exception, ex:
+        except Exception as ex:
             self.logger.error(ex)
             self.raise_error()
 
@@ -412,12 +412,12 @@ class BaseRestfulMotorHandler(BaseHandler):
 
                 self.return_resource(base_object)
 
-        except ValidationError, vex:
+        except ValidationError as vex:
             self.logger.error("%s validation error" % self.object_name, vex)
             self.raise_error(400, "Your %s cannot be created because it is missing required fields, see docs" % self.object_name)
-        except ValueError, ex:
+        except ValueError as ex:
             self.raise_error(400, "Invalid JSON Body, check formatting. %s" % ex[0])
-        except Exception, ex:
+        except Exception as ex:
             self.logger.error(ex)
             self.raise_error()
 
@@ -438,7 +438,7 @@ class BaseRestfulMotorHandler(BaseHandler):
 
             self.raise_error(404, "Resource not found")
 
-        except InvalidId, ex:
+        except InvalidId as ex:
             self.raise_error(400, message="Your ID is malformed: %s" % id)
         except:
             self.raise_error()
