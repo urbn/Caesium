@@ -30,7 +30,7 @@ class AsyncRevisionStackManager(object):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.settings = settings
         self.client = settings.get("db")
-        assert self.client != None
+        assert self.client is not None
 
     @coroutine
     def publish(self):
@@ -170,7 +170,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.settings = settings
         self.client = self.settings.get("db")
-        assert self.client != None
+        assert self.client is not None
         self.revisions = []
         self.collection_name = collection_name
         self.collection = BaseAsyncMotorDocument(collection_name, self.settings, schema=collection_schema)
@@ -572,7 +572,7 @@ class BaseAsyncMotorDocument(object):
         self.settings = settings
         self.client = self.settings.get("db")
 
-        assert self.client != None
+        assert self.client is not None
         self.scheduleable = scheduleable
         self.collection_name = collection_name
         self.revisions_collection = self.client["revisions"]

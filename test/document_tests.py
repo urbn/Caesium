@@ -101,7 +101,7 @@ class TestBaseAsyncMotorDocument(BaseAsyncTest):
         resp = yield self.client.insert(self.test_fixture)
         ok_(isinstance(resp, str))
         obj = yield self.client.location_based_search(-75.221, 39.251, 100)
-        ok_(obj != None)
+        ok_(obj is not None)
         ok_(isinstance(obj, list))
 
     @tornado.testing.gen_test
