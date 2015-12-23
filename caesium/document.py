@@ -30,7 +30,7 @@ class AsyncRevisionStackManager(object):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.settings = settings
         self.client = settings.get("db")
-        assert self.client != None
+        assert self.client is not None
 
     @coroutine
     def publish(self):
@@ -41,7 +41,7 @@ class AsyncRevisionStackManager(object):
         try:
              for collection in self.settings.get("scheduler").get("collections"):
                 yield self.publish_for_collection(collection)
-        except Exception, ex:
+        except Exception as ex:
             self.logger.error(ex)
 
     @coroutine
@@ -114,7 +114,7 @@ class AsyncRevisionStackManager(object):
 
                     self.logger.debug(revision)
 
-                except Exception, ex:
+                except Exception as ex:
                     self.logger.error(ex)
 
 class AsyncSchedulableDocumentRevisionStack(object):
@@ -170,7 +170,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
         self.logger = logging.getLogger(self.__class__.__name__)
         self.settings = settings
         self.client = self.settings.get("db")
-        assert self.client != None
+        assert self.client is not None
         self.revisions = []
         self.collection_name = collection_name
         self.collection = BaseAsyncMotorDocument(collection_name, self.settings, schema=collection_schema)
@@ -240,14 +240,14 @@ class AsyncSchedulableDocumentRevisionStack(object):
             if revision.get("action") == self.UPDATE_ACTION:
                 try:
                     yield self.__update_action(revision)
-                except Exception, ex:
+                except Exception as ex:
                     self.logger.error(ex)
 
             # Insert type update
             if revision.get("action") == self.INSERT_ACTION:
                 try:
                     yield self.__insert_action(revision)
-                except Exception, ex:
+                except Exception as ex:
                     self.logger.error(ex)
 
             #Get the updated object for attachment to the snapshot
@@ -257,7 +257,7 @@ class AsyncSchedulableDocumentRevisionStack(object):
             if revision.get("action") == self.DELETE_ACTION:
                 try:
                     yield self.__delete_action(revision)
-                except Exception, ex:
+                except Exception as ex:
                     self.logger.error(ex)
 
                 snapshot_object = None
@@ -572,7 +572,7 @@ class BaseAsyncMotorDocument(object):
         self.settings = settings
         self.client = self.settings.get("db")
 
-        assert self.client != None
+        assert self.client is not None
         self.scheduleable = scheduleable
         self.collection_name = collection_name
         self.revisions_collection = self.client["revisions"]

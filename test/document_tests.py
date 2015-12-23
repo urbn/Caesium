@@ -10,11 +10,11 @@ from tornado.testing import gen_test
 from nose.tools import raises, ok_
 import datetime
 
-from base_tests import BaseAsyncTest
+from .base_tests import BaseAsyncTest
 from caesium.document import AsyncRevisionStackManager, AsyncSchedulableDocumentRevisionStack, RevisionActionNotValid, BaseAsyncMotorDocument
 
-test_attr = unicode("foo")
-test_val = unicode("bar")
+test_attr = u'foo'
+test_val = u'bar'
 
 settings = {}
 
@@ -101,7 +101,7 @@ class TestBaseAsyncMotorDocument(BaseAsyncTest):
         resp = yield self.client.insert(self.test_fixture)
         ok_(isinstance(resp, str))
         obj = yield self.client.location_based_search(-75.221, 39.251, 100)
-        ok_(obj != None)
+        ok_(obj is not None)
         ok_(isinstance(obj, list))
 
     @tornado.testing.gen_test
